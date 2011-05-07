@@ -1,0 +1,8 @@
+syntax: glob
+test/jsrl.js
+test/jsutils.js
+err/jsrl.js
+err/jsutils.js
+test_debug/jsrl.js
+test_debug/jsutils.js
+*~
