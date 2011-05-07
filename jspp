@@ -1,0 +1,21 @@
+#!/bin/bash
+SYSTEM=$(uname -s)
+SEDOPT=""
+INPUT_FILE=$1
+shift
+if [ ${SYSTEM:0:6} == CYGWIN ]; then
+  SEDOPT="$SEDOPT -b"
+fi
+
+desharp() {
+    sed $SEDOPT -e '/^#.*$/d' | sed -s 's/$/\r/'
+}
+
+
+deformat() {
+    sed $SEDOPT -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//'
+}
+
+TEMP_FILE=$(mktemp)
+sed $SEDOPT 's/^\/\/#\s*\(if\|ifdef\|define\|include\|elseif\|else\|endif\)\>/#\1/' $INPUT_FILE > $TEMP_FILE 
+cpp -I. $* $TEMP_FILE | desharp | deformat

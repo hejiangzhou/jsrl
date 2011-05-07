@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Test for JsrlLib</title>
+	
+    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+    <meta http-equiv="description" content="this is my page">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    
+    <script type="text/javascript" src="jsutils.js"></script>
+    <script type="text/javascript" src="jsrl.js"></script>
+    <script type="text/javascript">
+    	function getDataById(id) {
+    		return eval("(" + document.getElementById(id).value + ")");
+    	}
+    	Jsrl.loadLibrary("jsrlTestLib.xml");
+    </script>
+
+
+  </head>
+  
+  <body>
+    <table>
+      <tr>
+        <td>
+	      <textarea cols="60" rows="6" id="data1">
+{ name : "Mike", sex : true, age : 23 }
+	      </textarea><br/>
+	      <BR/>
+	      <input type="button" value="render" onclick="Jsrl.render('area1', getDataById('data1'));"/>
+          </td>
+        <td>
+          <div id="area1"><!--
+              <table border=1>
+                <tr><td colspan="2"><center>Namecard</center></td></tr>
+                <tr><td>Name</td><td>@{$0.name}</td></tr>
+                <tr><td>Sex</td><td>@if{$0.sex} Male @else Female @end_if</td></tr>
+                <tr><td>Age</td><td>@{$0.age}</td></tr>
+              </table>
+          --></div>
+          </td>
+        </tr>
+      <tr>
+        <td>
+	      <textarea cols="60" rows="6" id="data2">
+[ { name : "Mike", sex : true, age : 23 }, { name : "Susan", sex : false, age : 21 } ]
+	      </textarea><br/>
+	      <BR/>
+	      <input type="button" value="render" onclick="Jsrl.render('area2', getDataById('data2'));"/>
+          </td>
+        <td>
+          <div id="area2"><!--
+             <table><tr>
+             @foreach{x, $0}
+             <td>
+               @I{":area1", $x}
+             </td>
+             @end_foreach
+             </tr></table>
+          --></div>
+          </td>
+        </tr>
+      <tr>
+        <td>
+	      <textarea cols="60" rows="6" id="data3">
+[ { name : "Mike", sex : true, age : 23 }, { name : "Susan", sex : false, age : 21 } ]
+	      </textarea><br/>
+	      <BR/>
+	      <input type="button" value="render" onclick="Jsrl.render('area3', getDataById('data3'));"/>
+          </td>
+        <td>
+          <div id="area3"><!--
+          	@I{"namecard_group", $0}
+          --></div>
+          </td>
+        </tr>
+      <tr>
+        <td>
+	      <textarea cols="60" rows="6" id="data4">
+[ { name : "Mike", sex : true, age : 23 }, { name : "Susan", sex : false, age : 21 } ]
+	      </textarea><br/>
+	      <BR/>
+	      <input type="button" value="render" onclick="Jsrl.render('area4', getDataById('data4'));"/>
+          </td>
+        <td>
+          <div id="area4"><!--
+          	@set{i, 0}
+			@foreach {x, $0}
+				@set{i, $i + 1}
+				@Ix{"card_frame"}
+					@{$i}
+				@next_Ix
+					@{$x.name}
+				@next_Ix
+	               Sex: @if{$0.sex} Male @else Female @end_if<br/>
+	               Age: @{$0.age}
+				@end_Ix
+			@end_foreach
+          --></div>
+          </td>
+        </tr>
+      </table>
+  </body>
+</html>
