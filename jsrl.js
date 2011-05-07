@@ -249,7 +249,7 @@ var Jsrl = (function() {
 	var digitChar = /[0-9]/;
 	var intReg = /^[0-9]+$/;
 	var floatReg = /^[0-9]*\.[0-9]*$/;
-	var strReg = /^\"[^\"\\]*\"$/;
+	var strReg = /^\"[^\"\\]*\"$/;//"
 
 	/*
 	 * Functions
