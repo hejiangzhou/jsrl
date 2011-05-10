@@ -306,7 +306,7 @@ var Q = (function () {
 
 	Q.include = function (str, pattern) { return str.indexOf(pattern) > -1; };
 
-	Q.startsWith = function (str, pattern) { return str.indexOf(pattern) == 0; };
+	Q.startsWith = function (str, pattern) { return str.length >= pattern.length && str.substr(0, pattern.length) == pattern; };
 
 	Q.endsWith = function (str, pattern) {
     	var d = str.length - pattern.length;
