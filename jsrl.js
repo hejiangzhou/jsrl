@@ -24,7 +24,6 @@
 //#  define _ERROR(A)
 //#endif
 
-
 //The kernal of JSRL
 var Jsrl = (function() {
 //#ifdef DEBUG
@@ -931,11 +930,12 @@ var Jsrl = (function() {
 		getHtml : function () { return this.htmlList.join(""); }
 	};
 
-	function Evaluator(tags, prop) {
+	function Evaluator(tags, prop, lang) {
 		this.block = new Block();
 		this.block.tags = tags;
 		this.undefined_text = undefinedText;
 		this.prop = prop;
+		this.lang = lang;
 	}
 	Evaluator.prototype = {
 		evaluateData : function (data, dataList, env) {
@@ -1050,7 +1050,7 @@ var Jsrl = (function() {
 		tags[name] = obj;
 	}
 	
-	function loadTemplate(template, prop) {
+	function loadTemplate(template, prop, lang) {
 //#ifdef DEBUG
 		Trace().setText(template);
 //#endif
@@ -1062,7 +1062,7 @@ var Jsrl = (function() {
 			ASSERT(tag.generator.__type != "DummyTag", "Unknown tag " + tag.type);
 			list.push(tag.generator);
 		}
-		var result = new Evaluator(list, prop);
+		var result = new Evaluator(list, prop, lang);
 //#ifdef DEBUG
 		result.info = Trace().topInfo();
 //#endif
@@ -1076,11 +1076,12 @@ var Jsrl = (function() {
 	var loading = 0;
 	var uniqueIdCount = 0;
 	
-	function LazyTemplate(name, path, text, prop) {
+	function LazyTemplate(name, path, text, prop, lang) {
 		this.name = name;
 		this.path = path;
 		this.text = text;
 		this.prop = prop;
+		this.lang = lang;
 	}
 	LazyTemplate.prototype.__type = "LazyTemplate";
 	
@@ -1100,7 +1101,6 @@ var Jsrl = (function() {
 	}
 	
 	function registerLazyTemplate(name, tmp) {
-		ASSERT(!evaluators[name], "Jsrl template names confict - " + name);
 		evaluators[name] = tmp;
 	}
 	
@@ -1147,7 +1147,7 @@ var Jsrl = (function() {
 			Trace().pushTemplate(result.name, result.path);
 			Trace().setText(result.text);
 //#endif
-			evaluators[name] = result = loadTemplate(result.text, result.prop);
+			evaluators[name] = result = loadTemplate(result.text, result.prop, result.lang);
 //#ifdef DEBUG
 			Trace().pop();
 //#endif
@@ -1186,30 +1186,53 @@ var Jsrl = (function() {
 			if (node.nodeType == 1) {
 				if (node.nodeName == "require") {
 					loadLibrary(node.getAttribute("path"), absPath);
-				} else if (node.nodeName == "template") {
-					var prop = {};
-					var props = node.getElementsByTagName("property");
-					var tmpName = node.getAttribute("name");
-					for (var k = 0; k < props.length; k++) {
-						var name = props[k].getAttribute("name");
-						var value = props[k].getAttribute("value");
-						ASSERT(name, "A property of \"" + tmpName + "\" in " + absPath + " does not have a name");
-						var parser = propParsers[name];
-						var parsedVal = (parser ? parser(value, name) : value);
-						prop[name] = parsedVal;
-					}
-					var j;
+				} else {
+					var lang = node.getAttribute("lang");
+					if (!isCompatibleLang(language, lang)) continue;
+					var txt = null;
+					var j, name, isTmp;
+					ASSERT(node.nodeName == "template" || node.nodeName == "dict", "Cannot resolve tag named " + node.nodeName + " in " + absPath);
+					if (node.nodeName == "template") {
+						isTmp = true;
+						name = node.getAttribute("name");
+					} else {
+						isTmp = false;
+						name = node.getAttribute("key");
+					} 
+
 					for (j = 0; j < node.childNodes.length; j++) {
 						var subNode = node.childNodes[j];
-						ASSERT(subNode.nodeType == 1 || subNode.nodeType == 3 || subNode.nodeType == 4 || subNode.nodeType == 8, "Unexpected subnode in template node \"" + node.getAttribute("name") + "\"");
+						ASSERT(subNode.nodeType == 1 || subNode.nodeType == 3 || subNode.nodeType == 4 || subNode.nodeType == 8, "Unexpected subnode in " + node.nodeName + " node \"" + name + "\"");
 						if (subNode.nodeType == 4) {
-							registerLazyTemplate(tmpName, new LazyTemplate(tmpName, absPath, subNode.nodeValue, prop));
+							txt = subNode.nodeValue;
 							break;
 						}
 					}
-					ASSERT(j < node.childNodes.length, "Cannot find template text of \"" + tmpName + "\" template in " + absPath);
-				} else {
-					ERROR("Cannot resolve tag named " + node.nodeName + " in " + absPath);
+					ASSERT(j < node.childNodes.length, "Cannot find text in " + node.nodeName + " \"" + name + "\" template in " + absPath);
+					
+					if (isTmp) {
+						var oldTmp = evaluators[name];
+//#ifdef DEBUG
+						if (!oldTmp || needsOverrideLang(lang, oldTmp.lang, "Template \"" + name + "\""))
+//#else
+						if (!oldTmp || needsOverrideLang(lang, oldTmp.lang))
+//#endif
+						{
+							var prop = {};
+							var props = node.getElementsByTagName("property");
+							for (var k = 0; k < props.length; k++) {
+								var pname = props[k].getAttribute("name");
+								var value = props[k].getAttribute("value");
+								ASSERT(pname, "A property of \"" + name + "\" in " + absPath + " does not have a name");
+								var parser = propParsers[pname];
+								var parsedVal = (parser ? parser(value, pname) : value);
+								prop[pname] = parsedVal;
+							}
+							registerLazyTemplate(name, new LazyTemplate(name, absPath, txt, prop, lang));
+						}
+					} else if (node.nodeName == "dict") {
+						registerDictItem(lang, name, Q.evalJSON(txt));
+					}
 				}
 			}
 		}
@@ -2528,6 +2551,164 @@ var Jsrl = (function() {
 	};
 	registerTag("block", BlockTag);
 
+
+	/*
+	 * JSRL i18n support
+	 */
+	var dict = {};
+	var language;
+
+	function DictPattern(pattern) {
+		this.compile(pattern);
+	}
+
+	DictPattern.prototype = {
+		compile : function (pattern) {
+			var li = 0, strs = [];
+			this.list = [];
+			for (var i = 0; i < pattern.length; i++) {
+				var c = pattern.charAt(i);
+				switch (c) {
+				case '{':
+					strs.push(pattern.substring(li, i));
+					if (i + 1 < pattern.length && pattern.charAt(i + 1) == '{') {
+						li = ++i;
+					} else {
+						this.appendStr(strs);
+						strs = [];
+						var j = pattern.indexOf("}", i + 1);
+						ASSERT(j > 0, "Cannot find maching '}' for '{'");
+						var keys = pattern.substring(i + 1, j).split(".");
+						for (var k = 0; k < keys.length; k++)
+							if (intReg.test(keys[k]))
+								keys[k] = parseInt(keys[k]);
+						this.list.push(keys);
+						i = j;
+						li = i + 1;
+					}
+					break;
+				case '}':
+					if (i + 1 < pattern.length && pattern.charAt(i + 1) == '}') {
+						strs.push(pattern.substring(li, i));
+						li = ++i;
+					}
+					break;
+				}
+			}
+			strs.push(pattern.substring(li));
+			this.appendStr(strs);
+			delete this.pattern;
+		},
+		apply : function (result, args) {
+			if (!this.list) this.compile();
+			var l = this.list;
+			for (var i = 0; i < l.length; i++) {
+				var v = l[i];
+				if (typeof(v) == "string")
+					result.push(v);
+				else {
+					var s = v, r = args;
+					for (var j = 0; j < s.length; j++)
+						if (r) r = r[s[j]];
+					if (r == null) r = undefinedText;
+					result.push(r);
+				}
+			}
+		},
+		appendStr : function (strs) {
+			var s = strs.join("");
+			if (s.length > 0) this.list.push(Q.purify(s));
+		}
+	};
+
+	function registerDictItem(lang, key, value) {
+		var fields = key.split(".");
+		var v = dict;
+		for (var i = 0; i < fields.length - 1; i++) {
+			var name = fields[i];
+			if (name in v)
+				v = v[name];
+			else {
+				var o = {};
+				v[name] = o;
+				v = o;
+			}
+		}
+		var n = fields.pop();
+//#ifdef DEBUG
+		if (!(n in v) || needsOverrideLang(lang, v[n].__info.lang, "Key \"" + key + "\""))
+//#else
+		if (!(n in v) || needsOverrideLang(lang, v[n].__info.lang))
+//#endif
+		{
+			v[n] = value;
+			v[n].__info = { lang: lang };
+		}
+	}
+
+	function genDictText(result, key, args) {
+		var fields = key.split(".");
+		var v = dict, lv;
+		for (var i = 0; i < fields.length; i++) {
+			lv = v;
+			v = v[fields[i]];
+			_ASSERT(v, "Key \"" + key + "\" not found in dictionary");
+		}
+		if (typeof(v) == "string") {
+			v = new DictPattern(v);
+			lv[fields.pop()] = v;
+		}
+		v.apply(result, args);	
+	}
+	
+	function getDictText(key, args) {
+		var result = [];
+		genDictText(result, key, args);
+		return result.join("");
+	}
+
+	function isCompatibleLang(lang, ref) {
+		return lang == ref || isSubLang(lang, ref);
+	}
+
+    function isSubLang(lang, ref) {
+		return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "_"))
+	}
+
+//#ifdef DEBUG
+	function needsOverrideLang(lang, ref, name)
+//#else
+	function needsOverrideLang(lang, ref)
+//#endif
+	{
+		if (isSubLang(ref, lang)) return false;
+		ASSERT(ref != lang, name + " duplicates with the same language \"" + lang + "\"");
+		ASSERT(!isCompatibleLang(language, ref) || isSubLang(lang, ref), name + "\" has two different languages without partial order (\"" + language + "\" and \"" + ref + "\"). To avoid such problem, you can set the language before loading the templates.");
+		return true;
+	}
+
+	function setLanguage(lang) { language = lang; }
+
+	// @D tag and @Dx tag
+	var DTag = function (args, scanner) {
+		ASSERT(args.length >= 1, "@D: need at least 1 argument");
+		this.keyName = evaluateFunc(args[0]);
+		this.args = new Array(args.length - 1);
+		for (var i = 1; i < args.length; i++)
+			this.args[i - 1] = evaluateFunc(args[i]);
+	};
+	DTag.prototype = {
+		generate : function (data, env) {
+			var key = this.keyName(data);
+			ASSERT(typeof(key) == "string", "@D: the first argument should be a string");
+			var rargs = new Array(this.args.length);
+			for (var i = 0; i < rargs.length; i++)
+				rargs[i] = Q.purify(this.args[i](data));
+			genDictText(env.htmlList, key, rargs);
+		}
+	};
+	registerTag("D", DTag);
+
 	return {
 //#ifdef DEBUG
 		"Trace": Trace,
@@ -2563,135 +2744,8 @@ var Jsrl = (function() {
 		"getId" : getId,
 		"tagById" : tagById,
 		"uniqueId" : uniqueId,
-		"dispose" : dispose
+		"dispose" : dispose,
+		"setLanguage" : setLanguage
 	};
 
 })();
-
-var QJJsrl = (function() {
-	// Define @a
-	function ATag(args, scanner) {
-		Jsrl_ASSERT(args.length >= 2, "@a: require at least 2 arguments");
-		this.text = Jsrl.evaluateFunc(args[0]);
-		this.path = Jsrl.evaluateFunc(args[1]);
-		this.arg = Jsrl.evaluateFunc(args[2]);
-		Jsrl.parseAttributes(this, Jsrl.generalAttParsers, args, 3);
-	}
-	ATag.prototype = {
-		generate : function (data, env) {
-			var id = Jsrl.getId(this, data, env);
-			env.push(Jsrl.tagById("a", id) + " href=\"" + data.WIND.Page.getPath(this.path(data), this.arg(data)) + "\"");
-			Jsrl.generateAttributes(this, data, this, env);
-			env.push(">" + Q.purify(this.text(data)) + "</a>");
-		}
-	};
-	Jsrl.registerTag("a", ATag);
-	
-	// Define @ax
-	function AxTag(args, scanner) {
-		Jsrl_ASSERT(args.length >= 1, "@ax: require at least 1 arguments");
-		this.path = Jsrl.evaluateFunc(args[0]);
-		this.arg = Jsrl.evaluateFunc(args[1]);
-		Jsrl.parseAttributes(this, Jsrl.generalAttParsers, args, 2);
-		this.body = new Jsrl.Block();
-		var last = this.body.appendUntilDummy(scanner);
-		Jsrl_ASSERT(last.type == "end_ax", "@ax: expect a @end_ax to finish, unknown tag @" + last.type);
-		Jsrl_ASSERT(last.generator.args.length == 0, "@ax: end_ax expect no argument");
-	}
-	AxTag.prototype = {
-		generate : function (data, env) {
-			var id = Jsrl.getId(this, data, env);
-			env.push(Jsrl.tagById("a", id) + " href=\"" + data.WIND.Page.getPath(this.path(data), this.arg(data)) + "\"");
-			Jsrl.generateAttributes(this, data, this, env);
-			env.push(">");
-			this.body.generate(data, env);
-			env.push("</a>");
-		}
-	};
-	Jsrl.registerTag("ax", AxTag);
-	
-	var tagLib;
-	function initNodeForTag(topNode, tagName) {
-		var srcNodes = document.body.getElementsByTagName(tagName);
-		var nodes = topNode.getElementsByTagName(tagName);
-		Jsrl_ASSERT(srcNodes.length == nodes.length, "Target node must have the same innerHTML with document.body");
-		for (var i = 0; i < nodes.length; i++) {
-			var node = nodes[i];
-//#ifdef DEBUG
-			Jsrl.Trace().pushPageNode(node);
-//#endif
-			var text = Jsrl.getJsrlTemplate(srcNodes[i]);
-			if (text != null) {
-				if (node.id == "" || node.id == undefined) {
-					var id = Jsrl.uniqueId();
-					if (window != top) id = "s" + id;
-					node.id = id;
-				}
-				var tmp = Jsrl.registerTemplate(node.id, text);
-				tagLib[node.id] = { "node" : node, "tmp" : tmp };
-			}
-//#ifdef DEBUG
-			Jsrl.Trace().pop();
-//#endif
-		}
-	}
-	
-	function init(topNode) {
-		tagLib = {};
-		initNodeForTag(topNode, "DIV");
-		initNodeForTag(topNode, "SPAN");
-	};
-	
-	function load() {
-		for (var name in tagLib) {
-			var info = tagLib[name];
-			if (typeof(info) != "function" && name.charAt(0) != "!") {
-				info.node.form = null;
-				Jsrl.renderData(info.node, info.tmp, []);
-			} 
-		}
-	};
-	
-	function dispose() {
-		for (var name in tagLib) {
-			var info = tagLib[name];
-			if (info.node.form) info.node.form.dispose();
-		}
-		Jsrl.dispose();
-	};
-	
-	function renderArray(name, arr) {
-		var info = tagLib[name];
-		Jsrl_ASSERT(info != null, "Cannot find node with name " + name);
-		Jsrl.renderData(info.node, info.tmp, arr);
-	}
-	
-	function rerenderArray(name, arr) {
-		var info = tagLib[name];
-		Jsrl_ASSERT(info != null, "Cannot find node with name " + name);
-		Jsrl.clear(info.node);
-		Jsrl.renderData(info.node, info.tmp, arr);
-	}
-
-	function render(name) {
-		var arr = new Array(arguments.length);
-		for (var i = 1; i < arguments.length; i++)
-			arr[i - 1] = arguments[i];
-		renderArray(name, arr);
-	};
-	
-	function rerender(name) {
-		var arr = new Array(arguments.length);
-		for (var i = 1; i < arguments.length; i++)
-			arr[i - 1] = arguments[i];
-		rerenderArray(name, arr);
-	};
-	
-	return {
-		"init" : init,
-		"load" : load,
-		"dispose" : dispose,
-		"render" : render,
-		"rerender" : rerender
-	};
-});

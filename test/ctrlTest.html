@@ -72,7 +72,7 @@
 		
 		@# 下面是子控件示例，空间在jsrlTestLib.xml中
 		子控件1：@C{mul[0], "multiple_ctrl"} <br/>
-		子控件2：@C{mul[1], "multiple_ctrl", x=4, y=6, onchange: alert("乘法控件的值变为了" + #.eval() + "(" + args[1] + "*" + args[2] + ")")} <br/>
+		子控件2：@C{mul[1], "multiple_ctrl", x=4, y=6, onchange: alert("乘法控件的值变为了" + #.eval() + "(" + args[0] + "*" + args[1] + ")")} <br/>
 		
 		@C{, "autoInc", initVal="test"}
 		

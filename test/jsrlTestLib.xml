@@ -52,8 +52,8 @@
 		@ns{#,
 			value: return parseInt(ctrls.x.get()) * parseInt(ctrls.y.get())
 		}
-			x:@text{x, $x ? $x : 0, size=5, onchange: { Q.mayCall($onchange, form, parseInt(self.get()), parseInt(ctrls.y.get())); }}
-			y:@text{y, $y ? $y : 0, size=5, onchange: { Q.mayCall($onchange, form, parseInt(ctrls.x.get()), parseInt(self.get())); }}
+			x:@text{x, $x ? $x : 0, size=5, onchange: { Q.mayCall($onchange, form, null, [parseInt(self.get()), parseInt(#y.get())]); }}
+			y:@text{y, $y ? $y : 0, size=5, onchange: { Q.mayCall($onchange, form, null, [parseInt(ctrls.x.get()), parseInt(#.get())]); }}
 		@end_ns
 	]]></template>
 
