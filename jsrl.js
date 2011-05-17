@@ -221,7 +221,7 @@ var Jsrl = (function() {
 			res += "</style>";
 			res += "</HEAD><BODY>";
 			res += "<div class=title>" + title + "</div>";
-			res += "<div class=errMsg>" + errMsg + "</div>";
+			res += "<div class=errMsg>" + Q.htmlize(errMsg) + "</div>";
 			if (!Trace().empty()) {
 				var node = Trace().top();
 				res += this.getBlock("Position", node, 7);
@@ -238,8 +238,8 @@ var Jsrl = (function() {
 			doc.close();
 			
 			reporting = true;
-			window.setTimeout(function() { reporting = false; }, 100);
-		}
+			window.setTimeout(function() { reporting = false; }, 100);}
+			
 	};
 	
 	function ERROR(msg, e) {
@@ -1180,6 +1180,7 @@ var Jsrl = (function() {
 	function loadXml(absPath, doc) {
 		var root = doc.documentElement;
 		ASSERT(root.nodeName == "jsrllib", "The Jsrl library " + absPath + " should contain a unique root named jsrllib");
+		var rootLang = root.getAttribute("lang");
 		var nodes = root.childNodes;
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i];
@@ -1188,6 +1189,7 @@ var Jsrl = (function() {
 					loadLibrary(node.getAttribute("path"), absPath);
 				} else {
 					var lang = node.getAttribute("lang");
+					if (!lang) lang = rootLang;
 					if (!isCompatibleLang(language, lang)) continue;
 					var txt = null;
 					var j, name, isTmp;
@@ -1231,15 +1233,40 @@ var Jsrl = (function() {
 							registerLazyTemplate(name, new LazyTemplate(name, absPath, txt, prop, lang));
 						}
 					} else if (node.nodeName == "dict") {
+//#ifdef DEBUG
+						var data;
+						try {
+							data = Q.evalJSON(txt);
+						} catch (e) {
+							ERROR("JSON syntax error in dictionary \"name\"", e);
+						}
+						registerDictItem(lang, name, data);
+//#else
 						registerDictItem(lang, name, Q.evalJSON(txt));
+//#endif
 					}
 				}
 			}
 		}
 	}
+
+	function replaceVar(str, vars) {
+		var varExp = /<(\w+)>/g;
+		var result = [], lastIdx = 0;
+		var m;
+		while (m = varExp.exec(str)) {
+			ASSERT(vars[m[1]], "Undefined variable \"" + m[1] + "\" in \"" + str + "\"");
+			result.push(str.substring(lastIdx, m.index));
+			result.push(vars[m[1]]);
+			lastIdx = m.index + m[0].length;
+		}
+		result.push(str.substr(lastIdx));
+		return result.join("");
+	}
 	
 	function loadLibrary(url, ref) {
 		if (ref == null) ref = location.pathname;
+		url = replaceVar(url, metaVars);
 		var absPath = Q.toAbsPath(ref, url);
 		if (loadedUrl[absPath] == true) return true;
 		loadedUrl[absPath] = true;
@@ -2555,6 +2582,7 @@ var Jsrl = (function() {
 	/*
 	 * JSRL i18n support
 	 */
+	var metaVars = {};
 	var dict = {};
 	var language;
 
@@ -2607,10 +2635,13 @@ var Jsrl = (function() {
 				if (typeof(v) == "string")
 					result.push(v);
 				else {
-					var s = v, r = args;
-					for (var j = 0; j < s.length; j++)
-						if (r) r = r[s[j]];
-					if (r == null) r = undefinedText;
+					var r = args;
+					for (var j = 0; j < v.length; j++)
+						if (r) r = r[v[j]];
+					if (r == null)
+						r = undefinedText;
+					else
+						r = Q.purify(r);
 					result.push(r);
 				}
 			}
@@ -2687,7 +2718,12 @@ var Jsrl = (function() {
 		return true;
 	}
 
-	function setLanguage(lang) { language = lang; }
+	function setLanguage(lang) {
+		language = lang;
+		metaVars.lang = lang;
+		var i = lang.indexOf("_");
+		metaVars.majorlang = (i > 0 ? lang.substr(0, i) : lang);
+	}
 
 	// @D tag and @Dx tag
 	var DTag = function (args, scanner) {
@@ -2703,7 +2739,7 @@ var Jsrl = (function() {
 			ASSERT(typeof(key) == "string", "@D: the first argument should be a string");
 			var rargs = new Array(this.args.length);
 			for (var i = 0; i < rargs.length; i++)
-				rargs[i] = Q.purify(this.args[i](data));
+				rargs[i] = this.args[i](data);
 			genDictText(env.htmlList, key, rargs);
 		}
 	};

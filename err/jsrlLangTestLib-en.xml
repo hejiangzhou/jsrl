@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jsrllib>
-
-	<template name="LangHello" lang="zh_CN"><![CDATA[
-            你好，中国人，@{$0}！
-	]]></template>
+<jsrllib lang="en">
 	<template name="LangHello"><![CDATA[
             Hello, @{$0}!
 	]]></template>
@@ -14,16 +10,11 @@
             Hello, British, @{$0}!
 	]]></template>
 
-	<dict key="Demo.LangTest" lang="en_US"><![CDATA[
+	<dict key="Demo.LangTest"><![CDATA[
             {
               language: "Language",
-              hello: "Hello, {0}" 
-            }
-	]]></dict>
-	<dict key="Demo.LangTest" lang="zh_CN"><![CDATA[
-            {
-              language: "语言",
-              hello: "{0}你好" 
+              hello: "Hello, {0}",
+              date: "{0.month}/{0.day}/{0.year}"
             }
 	]]></dict>
 </jsrllib>

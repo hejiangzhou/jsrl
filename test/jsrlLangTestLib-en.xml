@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="en">
+	<template name="LangHello"><![CDATA[
+            Hello, @{$0}!
+	]]></template>
+	<template name="LangHello" lang="en_US"><![CDATA[
+            Hello, American, @{$0}!
+	]]></template>
+	<template name="LangHello" lang="en_GB"><![CDATA[
+            Hello, British, @{$0}!
+	]]></template>
+
+	<dict key="Demo.LangTest"><![CDATA[
+            {
+              language: "Language",
+              hello: "Hello, {0}",
+              date: "{0.month}/{0.day}/{0.year}"
+            }
+	]]></dict>
+</jsrllib>

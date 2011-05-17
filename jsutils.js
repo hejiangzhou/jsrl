@@ -281,8 +281,8 @@ var Q = (function () {
 
 	Q.purify = function (str) {
 		str = Q.escape(str);
-		str = str.replace(/  /g, " &nbsp;");
-		str = str.replace(/\t/g, " &nbsp; &nbsp; ");
+		str = str.replace(/\ \ /g, " &nbsp;");
+		str = str.replace(/\t/g, " &nbsp; &nbsp;");
 		return str;
 	};
 
