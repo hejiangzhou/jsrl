@@ -1251,7 +1251,7 @@ var Jsrl = (function() {
 	}
 
 	function replaceVar(str, vars) {
-		var varExp = /<(\w+)>/g;
+		var varExp = /{(\w+)}/g;
 		var result = [], lastIdx = 0;
 		var m;
 		while (m = varExp.exec(str)) {
@@ -2610,6 +2610,8 @@ var Jsrl = (function() {
 						for (var k = 0; k < keys.length; k++)
 							if (intReg.test(keys[k]))
 								keys[k] = parseInt(keys[k]);
+							else if (k == 0)
+								keys.fromDict = true;
 						this.list.push(keys);
 						i = j;
 						li = i + 1;
@@ -2627,28 +2629,28 @@ var Jsrl = (function() {
 			this.appendStr(strs);
 			delete this.pattern;
 		},
-		apply : function (result, args) {
+		apply : function (args) {
 			if (!this.list) this.compile();
 			var l = this.list;
+			var result = new Array(l.length);
 			for (var i = 0; i < l.length; i++) {
-				var v = l[i];
+				var v = l[i], s;
 				if (typeof(v) == "string")
-					result.push(v);
+					s = v;
 				else {
-					var r = args;
+					s = (v.fromDict ? dict : args);
 					for (var j = 0; j < v.length; j++)
-						if (r) r = r[v[j]];
-					if (r == null)
-						r = undefinedText;
-					else
-						r = Q.purify(r);
-					result.push(r);
+						if (s) s = s[v[j]];
+					if (s == null)
+						s = undefinedText;
 				}
+				result[i] = s;
 			}
+			return result.join("");
 		},
 		appendStr : function (strs) {
 			var s = strs.join("");
-			if (s.length > 0) this.list.push(Q.purify(s));
+			if (s.length > 0) this.list.push(s);
 		}
 	};
 
@@ -2677,27 +2679,29 @@ var Jsrl = (function() {
 		}
 	}
 
-	function genDictText(result, key, args) {
+	function getDictText(key, args) {
 		var fields = key.split(".");
 		var v = dict, lv;
 		for (var i = 0; i < fields.length; i++) {
 			lv = v;
 			v = v[fields[i]];
-			_ASSERT(v, "Key \"" + key + "\" not found in dictionary");
+			ASSERT(v, "Key \"" + key + "\" not found in dictionary");
 		}
 		if (typeof(v) == "string") {
 			v = new DictPattern(v);
 			lv[fields.pop()] = v;
 		}
-		v.apply(result, args);	
+		return v.apply(args);	
 	}
 	
-	function getDictText(key, args) {
-		var result = [];
-		genDictText(result, key, args);
-		return result.join("");
+	function D(key) {
+		var n = arguments.length - 1;
+		var args = new Array(n);
+		for (var i = 0; i < n; i++)
+			args[i] = arguments[i + 1];
+		return getDictText(key, args);
 	}
-
+	
 	function isCompatibleLang(lang, ref) {
 		return lang == ref || isSubLang(lang, ref);
 	}
@@ -2740,7 +2744,7 @@ var Jsrl = (function() {
 			var rargs = new Array(this.args.length);
 			for (var i = 0; i < rargs.length; i++)
 				rargs[i] = this.args[i](data);
-			genDictText(env.htmlList, key, rargs);
+			env.push(Q.purify(getDictText(key, rargs)));
 		}
 	};
 	registerTag("D", DTag);
@@ -2781,7 +2785,8 @@ var Jsrl = (function() {
 		"tagById" : tagById,
 		"uniqueId" : uniqueId,
 		"dispose" : dispose,
-		"setLanguage" : setLanguage
+		"setLanguage" : setLanguage,
+		"D": D
 	};
 
 })();

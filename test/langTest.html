@@ -8,18 +8,46 @@
     <script type="text/javascript" src="json.js"></script>
     <script type="text/javascript" src="jsrlTestLib.js"></script>
     <script type="text/javascript">
-    	var times = 0;
-        Jsrl.setLanguage("en_US");
-    	Jsrl.loadLibrary("jsrlTestLib.xml");
-    	Jsrl.loadLibrary("jsrlLangTestLib-<majorlang>.xml");
+        var langs = { "en_US": "American English", "en_GB": "British English", "zh_CN": "大陆简体", "zh_TW": "台灣正體" };
+        var lang = "zh_CN";
+
+        Q.onready(function () {
+          var hash = location.hash;
+          var m = /lang=([\w]+)\b/.exec(hash);
+          if (m) lang = m[1]
+
+          Jsrl.setLanguage(lang);
+    	  Jsrl.loadLibrary("jsrlTestLib.xml");
+    	  Jsrl.loadLibrary("jsrlLangTestLib-{lang}.xml");
+          Jsrl.loadAll();
+        });
+
+        function changeLang(lang) {
+          location.hash = "lang=" + lang;
+          location.reload();
+        }
     </script>
 </head>
-<body onload="Jsrl.loadAll();">
+<body>
 	<div id="area1"><!--
+            Select language: @select{, lang, onchange:changeLang(#.get())}
+              @foreach{l, langs}
+                @option{$l, langs[$l]}
+              @end_foreach
+            @end_select
+            <br/>
             @I{"LangHello", "Alice"}<br/>
             @D{"Demo.LangTest.language"}<br/>
             @D{"Demo.LangTest.hello", "Bob"}<br/>
+            @D{"Demo.LangTest.a_meets_b", "Alice", "Bob"}<br/>
             @D{"Demo.LangTest.date", { year: 1985, month: 4, day: 5 }}<br/>
+            @D{"Demo.LangTest.select_color"}: 
+            @select{, "red"}
+                @option{"red", Jsrl.D("Demo.LangTest.red")}
+                @option{"green", Jsrl.D("Demo.LangTest.green")}
+                @option{"blue", Jsrl.D("Demo.LangTest.blue")}
+            @end_select
+            <br/>
 	 --></div>
 </body>
 </html>
