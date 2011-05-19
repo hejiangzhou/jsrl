@@ -15,11 +15,13 @@
 #   limitations under the License.
 #
 
-./jspp jsutils.js -DDEBUG -include preproc.jsh > err/jsutils.js
-./jspp jsrl.js -DDEBUG -include preproc.jsh > err/jsrl.js
+PWD=$(pwd)
+cd $(dirname $0)
 
-./jspp jsutils.js -DNDEBUG -include preproc.jsh > test/jsutils.js
-./jspp jsrl.js -DNDEBUG -include preproc.jsh > test/jsrl.js
+./jspp ../src/jsutils.js -DDEBUG -I../src -include preproc.jsh > debug/jsutils.js
+./jspp ../src/jsrl.js -DDEBUG -I../src -include preproc.jsh > debug/jsrl.js
 
-cp err/jsutils.js test_debug/
-cp err/jsrl.js test_debug/
+./jspp ../src/jsutils.js -DNDEBUG -I../src -include preproc.jsh > release/jsutils.js
+./jspp ../src/jsrl.js -DNDEBUG -I../src -include preproc.jsh > release/jsrl.js
+
+cd $PWD
