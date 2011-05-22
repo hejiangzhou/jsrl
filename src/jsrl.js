@@ -24,6 +24,12 @@
 //#  define _ERROR(A)
 //#endif
 
+function JsrlEval(str) {
+	var res = null;
+	eval(str);
+	return res;
+};
+
 //The kernal of JSRL
 var Jsrl = (function() {
 //#ifdef DEBUG
@@ -333,7 +339,7 @@ var Jsrl = (function() {
 			var strVal;
 			var value = this.value;
 			var len = value.length;
-			ASSERT(this.pos < value.length, "No more tag");
+			ASSERT(this.pos < value.length, "Expect more tag");
 			var type, generator;
 			var cont;
 			var npos; 
@@ -564,14 +570,14 @@ var Jsrl = (function() {
 					ff = f.func;
 				else {
 					var evalFuncs = [];
-					evalFuncs.push("([");
+					evalFuncs.push("res = ([");
 					for (i = lastEvaluated; i < evalFuncList.length - 1; i++) {
 						evalFuncs.push(evalFuncList[i].txt);
 						evalFuncs.push(",");
 					}
 					evalFuncs.push(evalFuncList[i].txt);
 					evalFuncs.push("])");
-					var funcArr = eval(evalFuncs.join(""));
+					var funcArr = JsrlEval(evalFuncs.join(""));
 					for (i = lastEvaluated; i < evalFuncList.length; i++) {
 						evalFuncList[i].txt = undefined;
 						evalFuncList[i].func = funcArr[i - lastEvaluated];
@@ -619,7 +625,7 @@ var Jsrl = (function() {
 //#ifdef DEBUG
 			var func;
 			try {
-				eval("func = function (__data) { return (" + arg + "); };");
+				func = JsrlEval("res = function (__data) { return (" + arg + "); };");
 			} catch (e) {
 				Trace().setPos(xarg.pos);
 				ERROR("Error occurs while evaluating expression", e);
@@ -640,7 +646,7 @@ var Jsrl = (function() {
 //#ifdef DEBUG
 		var func;
 		try {
-			eval("func = function (__data) { " + arg + "; };");
+			func = JsrlEval("res = function (__data) { " + arg + "; };");
 		} catch (e) {
 			Trace().setPos(xarg.pos);
 			ERROR("Error occurs while executing statement", e);
@@ -1010,7 +1016,7 @@ var Jsrl = (function() {
 	
 	function render(node, data, callback) {
 		var elem = (typeof(node) == "string" ? document.getElementById(node): node);
-		if (!elem.jsrlTemplate) elem.jsrlTemplate = getTemplate(":" + name);
+		if (!elem.jsrlTemplate) elem.jsrlTemplate = getTemplate(":" + node);
 		renderData(elem, elem.jsrlTemplate, data, callback);
 	}
 	
@@ -1680,8 +1686,7 @@ var Jsrl = (function() {
 			var result;
 //#ifdef DEBUG
 			try {
-				var func;
-				eval("func = function (event, document, __data, self, form, ctrls, args) { " + s + "; };");
+				var func = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s + "; };");
 //#else
 				var func = evalFunc("function (event, document, __data, self, form, ctrls, args) { " + s + "; }");
 //#endif
@@ -2585,6 +2590,7 @@ var Jsrl = (function() {
 	var metaVars = {};
 	var dict = {};
 	var language;
+	var majorLangs = {};
 
 	function DictPattern(pattern) {
 		this.compile(pattern);
@@ -2687,6 +2693,7 @@ var Jsrl = (function() {
 			v = v[fields[i]];
 			ASSERT(v, "Key \"" + key + "\" not found in dictionary");
 		}
+		ASSERT(typeof(v) == "string" || v instanceof DictPattern, key + " is not a valid key in dictionary"); 
 		if (typeof(v) == "string") {
 			v = new DictPattern(v);
 			lv[fields.pop()] = v;
@@ -2722,11 +2729,18 @@ var Jsrl = (function() {
 		return true;
 	}
 
+	function addMajorLang() {
+		for (var i = 0; i < arguments.length; i++)
+			majorLangs[arguments[i]] = true;
+	}
+
 	function setLanguage(lang) {
 		language = lang;
 		metaVars.lang = lang;
-		var i = lang.indexOf("_");
-		metaVars.majorlang = (i > 0 ? lang.substr(0, i) : lang);
+		var i;
+		while ((i = lang.indexOf("_")) > 0 && !(lang in majorLangs))
+			lang = lang.substr(0, i);
+		metaVars.majorlang = lang;
 	}
 
 	// @D tag and @Dx tag
@@ -2786,6 +2800,7 @@ var Jsrl = (function() {
 		"uniqueId" : uniqueId,
 		"dispose" : dispose,
 		"setLanguage" : setLanguage,
+		"addMajorLang" : addMajorLang,
 		"D": D
 	};
 

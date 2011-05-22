@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="zh_CN">
+  <dict key="Titles"><![CDATA[
+    {
+      main: "首页",
+      tutorial: {
+        _name : "教程",
+        overview: "JSRL概览",
+        basics: "JSRL语法和基本标签",
+        api: "在页面中使用JSRL的途径"
+      }
+    }
+  ]]></dict>
+</jsrllib>

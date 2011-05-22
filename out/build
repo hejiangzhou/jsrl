@@ -18,9 +18,11 @@
 PWD=$(pwd)
 cd $(dirname $0)
 
+mkdir -p debug
 ./jspp ../src/jsutils.js -DDEBUG -I../src -include preproc.jsh > debug/jsutils.js
 ./jspp ../src/jsrl.js -DDEBUG -I../src -include preproc.jsh > debug/jsrl.js
 
+mkdir -p release
 ./jspp ../src/jsutils.js -DNDEBUG -I../src -include preproc.jsh > release/jsutils.js
 ./jspp ../src/jsrl.js -DNDEBUG -I../src -include preproc.jsh > release/jsrl.js
 
