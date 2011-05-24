@@ -7,7 +7,7 @@
     @end_Ix
     
     @Ix{"Enumerate"}
-        @Ix{"Item"}在该框架的帮助下，只需在HTML代码中插入标签，就能够将AJAX动态获得的JSON数据格式化。@end_Ix
+        @Ix{"Item"}在该框架的帮助下，只需在HTML代码中插入标签，就能够将AJAX动态获得的JSON数据格式化并呈现出来。@end_Ix
         @Ix{"Item"}该框架能够从输入控件中提取数据，自动生成JSON对象，作为AJAX的请求参数。@end_Ix
         @Ix{"Item"}该框架允许定义控件，从而能够加强网页的模块化，改善代码的可重用性。@end_Ix
         @Ix{"Item"}该框架提供了对国际化(i18n)和本地化(l10n)的支持。@end_Ix

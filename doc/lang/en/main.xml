@@ -7,7 +7,7 @@
     @end_Ix
     
     @Ix{"Enumerate"}
-        @Ix{"Item"}With its help, programmers only need to insert a few tags among HTML code to format JSON data retrieving dynamically by AJAX.@end_Ix
+        @Ix{"Item"}With its help, programmers only need to insert a few tags among HTML code to format and render JSON data retrieving dynamically by AJAX.@end_Ix
         @Ix{"Item"}This framework can extract data from input controls and generate corresponding JSON object, which can be used as AJAX request parameters.@end_Ix
         @Ix{"Item"}With this framework, programmers can define controls, which enhance modularity and reusability of web pages.@end_Ix
         @Ix{"Item"}This framework supports internationalization (i18n) and localization (l10n).@end_Ix
