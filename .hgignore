@@ -1,5 +1,3 @@
 syntax: glob
-out/debug/*.js
-out/release/*.js
 *~
 \#*\#
