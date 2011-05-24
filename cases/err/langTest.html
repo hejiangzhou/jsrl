@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=GB18030">
+<title>Test for controls</title>
+    <script type="text/javascript" src="jsutils.js"></script>
+    <script type="text/javascript" src="jsrl.js"></script>
+    <script type="text/javascript" src="jsrlTestLib.js"></script>
+    <script type="text/javascript">
+    	var times = 0;
+        Jsrl.setLanguage("en_US");
+    	Jsrl.loadLibrary("jsrlTestLib.xml");
+    	Jsrl.loadLibrary("jsrlLangTestLib-<majorlang>.xml");
+    </script>
+</head>
+<body onload="Jsrl.loadAll();">
+	<div id="area1"><!--
+            @I{"LangHello", "Alice"}<br/>
+            @D{"Demo.LangTest.language"}<br/>
+            @D{"Demo.LangTest.hello", "Bob"}<br/>
+            @D{"Demo.LangTest.date", { year: 1985, month: 4, day: 5 }}<br/>
+	 --></div>
+</body>
+</html>

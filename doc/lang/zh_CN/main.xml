@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="zh_CN">
+  <template name="Entry.main"><![CDATA[
+    @Ix{"Paragraph"}
+      JSRL (JavaScript Render Language)是一个AJAX框架。
+      该框架主要提供了以下功能：
+    @end_Ix
+    
+    @Ix{"Enumerate"}
+        @Ix{"Item"}在该框架的帮助下，只需在HTML代码中插入标签，就能够将AJAX动态获得的JSON数据格式化。@end_Ix
+        @Ix{"Item"}该框架能够从输入控件中提取数据，自动生成JSON对象，作为AJAX的请求参数。@end_Ix
+        @Ix{"Item"}该框架允许定义控件，从而能够加强网页的模块化，改善代码的可重用性。@end_Ix
+        @Ix{"Item"}该框架提供了对国际化(i18n)和本地化(l10n)的支持。@end_Ix
+    @end_Ix
+
+    @Ix{"Paragraph"}
+      该框架完全运行在客户端，但是提供了很多以往只由服务器端框架所提供的功能。
+      与运行在服务器端的响应框架相比，使用该框架，可以减轻服务器的负担，节省带宽，减少不必要的HTTP请求，提高页面的响应速度。
+    @end_Ix
+
+    @Ix{"Paragraph"}
+      本文档为JSRL的手册，包括JSRL教程和JSRL的参考手册。
+      初学者可以通过JSRL教程来学习JSRL，有经验的用户可以在该文档中查询JSRL的API函数、标签和其他细节信息。
+      通过点击左边菜单中的链接，可以选择希望阅读的内容。
+    @end_Ix
+
+    @Ix{"Paragraph"}
+      本文档本身也是用JSRL来组织的。
+    @end_Ix
+  ]]></template>
+</jsrllib>

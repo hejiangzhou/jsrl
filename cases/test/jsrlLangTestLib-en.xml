@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="en">
+	<template name="LangHello"><![CDATA[
+            Hello, @{$0}!
+	]]></template>
+	<dict key="Demo.LangTest"><![CDATA[
+            {
+              language: "Language",
+              hello: "Hello, {0}",
+              date: "{0.month}/{0.day}/{0.year}",
+              a_meets_b: "{0} meets {1}",
+              select_color: "Select {Dialect.color}",
+              red: "red",
+              blue: "blue",
+              green: "green"
+            }
+	]]></dict>
+</jsrllib>

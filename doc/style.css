@@ -1,0 +1,12 @@
+body { padding:0; margin:0; background-color:#dfe8df; }
+.root { width:100%; float:left; }
+.menu { margin-left:-100%; width:200px; float:left; }
+.content { width:100%; float:left; }
+.entry { margin-left:200px; background-color:white; padding:20px 10px 20px 10px; font-size:14px; }
+
+.langSel { padding:10px 10px 10px 10px; margin-bottom:10px; background-color:#afcfaf; font-size:12px; }
+.menuItem { margin:2px 10px 2px 10px; font-size:12px; }
+.menuItemGroup { margin-bottom:10px; margin-left:10px; }
+
+.categoryEntry { font-weight:bold; color:#00003f; margin-top:5px; }
+.activeEntryLink { font-weight:bold; }

@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+#   Copyright 2011 Jiangzhou He <hejiangzhou@gmail.com>
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+
+PWD=$(pwd)
+cd $(dirname $0)
+
+mkdir -p debug
+./jspp ../src/jsutils.js -DDEBUG -I../src -include preproc.jsh > debug/jsutils.js
+./jspp ../src/jsrl.js -DDEBUG -I../src -include preproc.jsh > debug/jsrl.js
+
+mkdir -p release
+./jspp ../src/jsutils.js -DNDEBUG -I../src -include preproc.jsh > release/jsutils.js
+./jspp ../src/jsrl.js -DNDEBUG -I../src -include preproc.jsh > release/jsrl.js
+
+cd $PWD
