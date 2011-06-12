@@ -83,6 +83,7 @@ var topEntries = {
 var topDesc = mapEntryDesc(topEntries);
 
 function loadEntry(key) {
+	Article.reset();
 	currentEntry = key;
 	var keys = key.split(".");
 	var d = topDesc, e;

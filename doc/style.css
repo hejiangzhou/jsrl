@@ -13,4 +13,16 @@ select.langSel { font-size:12px; }
 .categoryEntry { font-weight:bold; color:#00003f; margin-top:5px; }
 .activeEntryLink { font-weight:bold; }
 
+.paragraph { margin:8px 0 8px 0; }
+.figure { text-align:center; margin:20px 0 20px 0; }
+.captionNumber { display:inline; margin-right:10px; font-weight:bold; }
+.ref { display:inline; font-weight:bold; }
+
+.code { background-color:#dfdfdf; margin:10px 20px 10px 20px; padding:3px 10px 3px 10px; }
+.codeBlock { margin-top:5px; }
+.codeLine { font-family:Consolas, Courier New; }
+.codeLineNumber { display:inline; color:#7f7f7f; margin-right:10px; }
+.codeLineCode { display:inline; }
+.codeFilename { display:inline; font-weight:bold; font-family:Arial; font-style:italic; }
+
 h1 { font-size:20px; margin:0; line-height:24px; }

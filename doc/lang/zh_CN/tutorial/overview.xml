@@ -1,10 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib lang="zh_CN">
   <template name="Entry.tutorial.overview"><![CDATA[
-    @Ix{"Section"}
+    @Ix{"Section", "背景"}
+  
       @Ix{"Paragraph"}
-        背景
+        Ajax技术在Web开发中应用得越来越广。
+        Ajax应用的一种典型模式是，令服务器端所执行的代码以XML、JSON等形式将动态数据输出到客户端，客户端通过脚本生成相应的HTML。
+        这种模式可以实现数据与格式的彻底分离，无疑带来了节省带宽、降低响应延迟、减轻服务器负担、将前后端的开发自然解耦合、便于动态和静态内容的分开部署等多种好处。
+        然而，由于这样一来，像动态构建HTML、根据用户的输入数据生成请求参数这些琐碎工作都要由Javascript来做，如此构建的Web应用，往往客户端代码庞大冗长。
+        如果缺少深思熟虑的规划，代码的可维护性会非常差。
+        造成这种状况的一个重要原因在于，基于Ajax开发的应用往往缺乏一个视图(view)层。
       @end_Ix
+  
+      @Ix{"Paragraph"}
+        成熟的传统瘦客户端的Web体系结构都具备一个独立的视图层（如@I{"Ref", "fig:web_traditional"}所示）。
+        利用这一视图层，可以将动态的内容嵌入到静态的HTML中，这样动态页面的骨架仍然与HTML无异，这种方式直观，清晰，易于维护。
+        例如，基于Java的Web框架中，JSP就是视图层；PHP页面本身也是这种视图；Python的Djongo框架所提供的模板语言也属于视图层范畴。
+      @end_Ix
+  
+      @Ix{"Figure"}
+        @I{"Picture", @"figures/webframework-traditional.jpg"}
+        @Ix{"Caption", "fig:web_traditional"}传统瘦客户端的Web体系结构@end_Ix
+      @end_Ix
+  
+      @Ix{"Paragraph"}
+        在基于Ajax的Web框架中，需要在客户端动态生成HTML，这一步往往通过Javascript代码来完成，这样就导致了客户端脚本过于庞大（如@I{"Ref", "fig:web_ajax"}所示）。
+        虽然一些成熟的Javascript框架能够帮些忙，但是在客户端动态生成HTML仍不能够像成熟的服务器端Web框架那样方便。
+        例如，jQuery、YUI这样的Web框架能够让程序员更方便地操作DOM，大大减少Javascript代码的长度，但动态的HTML仍然需要通过客户端程序员编写的Javascript代码来构建，这种方式远不如成熟服务器端框架所提供的视图层那样直观，而且，用于呈现动态HTML的代码也很容易和其他代码耦合起来。
+        extjs是另一个强大的Javascript框架。
+        使用extjs时，程序员一般不需要为视图层操心，只需要向它提供数据即可，因为extjs的呈现方式是内置的。
+        然而，用户难以根据自己的需要来定制视图，丧失了很大的灵活性，因此extjs的应用场合还比较受限。
+      @end_Ix
+  
+      @Ix{"Figure"}
+        @I{"Picture", @"figures/webframework-ajax.jpg"}
+        @Ix{"Caption", "fig:web_ajax"}基于Ajax的一般Web体系结构@end_Ix
+      @end_Ix
+  
+      @Ix{"Paragraph"}
+        设计JSRL的初衷，就是提供客户端（浏览器端）的视图。
+        JSRL(JavaScript Render Language)是基于Javascript的一种呈现语言，用来呈现动态的HTML。
+        使用JSRL的Web应用（如@I{"Ref", "fig:web_jsrl"}所示），程序员可以以模板的形式来描述动态HTML，而动态HTML的生成工作可以交给JSRL库来完成。
+        这样，客户端就有了一个清晰的视图层，而将视图层抽出后的脚本的职能也变得更加单纯，因而更加清晰（如@I{"Ref", "fig:web_jsrl"}所示）。
+      @end_Ix
+      
+      @Ix{"Figure"}
+        @I{"Picture", @"figures/webframework-jsrl.jpg"}
+        @Ix{"Caption", "fig:web_jsrl"}应用JSRL的Web体系结构@end_Ix
+      @end_Ix
+    @end_Ix
+
+    @Ix{"Section", "第一个JSRL例子"}
+      @Ix{"Paragraph"}
+        由于JSRL的基本功能是提供一个视图层，所以它的基本语法与JSP、PHP等所提供的服务器端视图层看起来很像。
+        @I{"Ref", "code:hw_jsp"}展示了一段最基本的JSP代码，它用来生成一个10行2列的，每行分别是从0到9的一个整数及其平方。
+      @end_Ix
+
+      @Ix{"Code", "code:hw_jsp"}
+        一段简单的JSP代码
+      @sep_Ix
+        @I{"CodeBlock", "jsp", "
+<table>
+<% for (int i = 0; i < 10; i++) { %>
+  <tr>
+    <td><%= i %></td>
+    <td><%= i * i %></td>
+  </tr>
+<% } %>
+</table>"}
+      @end_Ix
+      
+      @Ix{"Paragraph"}
+        @I{"Ref", "code:hw_jsp"}所示的JSP代码，也可以写成JSRL模板的形式，如@I{"Ref", "code:hw_jsrl"}所示。
+      @end_Ix
+
+      @Ix{"Code", "code:hw_jsrl"}
+        与@I{"Ref", "code:hw_jsp"}完成相同功能的JSRL模板
+      @sep_Ix
+        @I{"CodeBlock", "jsrl", "
+<table>
+@for{$i = 0, $i < 10, $i++}
+  <tr>
+    <td>@{$i}</td>
+    <td>@{$i * $i}</td>
+  </tr>
+@end_for
+</table>"}
+      @end_Ix
+
+      @Ix{"Paragraph"}
+        可以看出，JSRL模板的语法结构与JSP非常相似。
+        它们的共同特点是可以将动态的内容嵌入在静态的HTML中，从而创建一个直观清晰的视图层。
+        JSRL中，动态内容皆以“@@”开头的标签来表示，呈现过程中用到的变量以“$”开头。
+        更详细的语法规定将在@I{"EntryLink", "tutorial.basics"}一节介绍。
+      @end_Ix
+
+      @Ix{"Paragraph"}
+        由于网页中需要呈现的动态内容常常需要动态决定，例如通过Ajax请求返回的结果来确定，所以呈现过程常常依赖于一些输入值。
+        JSRL模板允许在呈现时传入一些参数，来满足这一需求。
+        例如，对于@I{"Ref", "code:hw_jsrl"}的JSRL模板，可以令$i循环的范围由参数给定，如@I{"Ref", "code:hw_jsrl2"}所示。
+      @end_Ix
+      
+      @Ix{"Code", "code:hw_jsrl2"}
+        接收输入参数的JSRL模板
+      @sep_Ix
+        @I{"CodeBlock", "jsrl", "
+<table>
+@for{$i = $0, $i < $1, $i++}
+  <tr>
+    <td>@{$i}</td>
+    <td>@{$i * $i}</td>
+  </tr>
+@end_for
+</table>"}
+      @end_Ix
+
+      @Ix{"Paragraph"}
+        该模板接收两个参数$0和$1，呈现时可以将这两个参数传入来决定循环的上下界。
+        传入的参数可以是任意复杂的数据类型，从Ajax请求返回的JSON数据，常常在呈现时当作参数传递给JSRL模板。
+        将这样一段模板在HTML页面中呈现出来的最便捷的方式是，将其写在HTML页面的注释中，并且调用JSRL的库函数来完成呈现。 
+      @end_Ix
+    @end_Ix
+
+    @Ix{"CodeFile", "code:hw_jsrl_html", "helloworld.html", "html"}
+      使用了JSRL的完整的HTML代码
     @end_Ix
   ]]></template>
 </jsrllib>

@@ -1,0 +1,24 @@
+--- doc/lang/zh_CN/tutorial/overview.xml	Tue May 24 20:16:24 2011 +0800
++++ doc/lang/zh_CN/tutorial/overview.xml	Tue Jun 07 18:03:01 2011 +0800
+@@ -2,9 +2,18 @@
+ <jsrllib lang="zh_CN">
+   <template name="Entry.tutorial.overview"><![CDATA[
+     @Ix{"Section"}
+-      @Ix{"Paragraph"}
+-        背景
+-      @end_Ix
++      背景
++    @end_Ix
++    @Ix{"Paragraph"}
++      Ajax技术在Web开发中应用得越来越广。
++      Ajax应用的一种典型模式是，令服务器端所执行的代码以XML、JSON等形式将动态数据输出到客户端，客户端通过脚本生成相应的HTML。
++      这种模式可以实现数据与格式的彻底分离，无疑带来了节省带宽、降低响应延迟、减轻服务器负担、将前后端的开发自然解耦合、便于动态和静态内容的分开部署等多种好处。
++      然而，由于这样一来，像动态构建HTML、根据用户的输入数据生成请求参数这些琐碎工作都要由Javascript来做，如此构建的Web应用，往往客户端代码庞大冗长。
++      如果缺少深思熟虑的规划，代码的可维护性会非常差。
++    @end_Ix
++    @Ix{"Figure"}
++      @I{"Picture", "figures/webframework-traditional.jpg"}
++      @I{"Caption", "fig:web_traditional", "传统瘦客户端的Web体系结构"}
+     @end_Ix
+   ]]></template>
+ </jsrllib>
