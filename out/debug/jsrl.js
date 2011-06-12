@@ -227,7 +227,7 @@ try {
 return func(data);
 } catch (e) {
 Trace().setPos(arg.pos);
-ERROR("Error occurs while executing JavaScript code");
+ERROR("Error occurs while executing JavaScript code", e);
 }
 };
 }
@@ -384,7 +384,7 @@ if (ch == "\\") scanner.pos++;
 ASSERT(scanner.pos <= value.length, "The string isn't complete");
 return value.substring(pos0, scanner.pos);
 }
-function nextExpr(scanner, endStr, varTkn, varFunc) {
+function nextExpr(scanner, endStr, varTkn) {
 skipBlank(scanner);
 var symbolStack = [];
 var str = [];
@@ -392,8 +392,9 @@ var value = scanner.value;
 var startPos = scanner.finalPos();
 while (scanner.pos < value.length) {
 var ch = value.charAt(scanner.pos++);
-if (ch == varTkn) {
-str.push(varFunc(scanner, value));
+var ti = (varTkn ? varTkn.indexOf(ch) : -1);
+if (ti >= 0) {
+str.push(arguments[3 + ti](scanner, value));
 } else {
 switch (ch) {
 case "(":
@@ -455,13 +456,32 @@ return "__data['" + ident + "']";
 return "$";
 }
 }
+function atParseFunc(scanner, value) {
+skipBlank(scanner);
+ASSERT(!scanner.end(), "Expect a string or expression");
+ch = value.charAt(scanner.pos);
+var expr = null;
+if (ch == "\"") {
+var p = nextString(scanner);
+if (strReg.test(p))
+return "\"" + Q.stringize(Q.toAbsPath(basePath, p.substr(1, p.length - 2))) + "\"";
+else
+expr = p;
+} else if (ch == "(") {
+scanner.pos++;
+var e = nextExpr(scanner, ")", "$", dollarParseFunc);
+e = e.arg;
+expr = "(" + e + ")";
+}
+return (expr ? "Q.toAbsPath(" + basePathStr + "," + expr + ")" : "@");
+}
 function nextExprList(scanner) {
 var value = scanner.value;
 if (scanner.end() || value.charAt(scanner.pos) != "{") return [];
 scanner.pos++;
 var result = [];
 while (!scanner.end() && value.charAt(scanner.pos - 1) != "}")
-result.push(nextExpr(scanner, ",}", "$", dollarParseFunc));
+result.push(nextExpr(scanner, ",}", "$@", dollarParseFunc, atParseFunc));
 ASSERT(scanner.pos > 0 && scanner.pos <= value.length && value.charAt(scanner.pos - 1) == "}", "expect '}' to end");
 return result;
 }
@@ -654,7 +674,7 @@ var result = this.evalFunc(data);
 if (result == null)
 result = data.undefined_text;
 else if (typeof(result) == "string")
-result = Q.escape(result);
+result = Q.purify(result);
 env.push(result);
 }
 };
@@ -793,7 +813,7 @@ return null;
 else
 return this.eval();
 };
-function __renderTemp(node, tmp, args, callback) {
+function __renderTemp(node, tmp, args, callback, path) {
 var env = new EnvManager(node, node.ownerDocument, window);
 var data;
 if (node.form) {
@@ -815,8 +835,8 @@ node.form = env.form;
 env.callRenderHook();
 if (callback && (typeof(callback) == "function")) callback(node);
 }
-function renderTemp(node, tmp, args, callback) {
-postExec(function() { __renderTemp(node, tmp, args, callback); });
+function renderTemp(node, tmp, args, callback, path) {
+postExec(function() { __renderTemp(node, tmp, args, callback, path); });
 }
 function renderTextTemp(node, text, data, callback) {
 if (node.id == "" || node.id == undefined) node.id = uniqueId();
@@ -859,12 +879,16 @@ if (!node.jsrlTemplate) node.jsrlTemplate = getTemplate(":" + node.id);
 renderData(node, node.jsrlTemplate, data, callback);
 }
 var tags = {};
+var basePath, basePathStr;
 function registerTag(name, obj) {
 ASSERT(tags[name] == undefined, "Tag @" + name + " has been already registered");
 tags[name] = obj;
 }
-function loadTemplate(template, prop, lang) {
+function loadTemplate(template, prop, lang, path) {
 Trace().setText(template);
+if (!path) path = location.href;
+basePath = path;
+basePathStr = "\"" + Q.stringize(path) + "\"";
 var scanner = new Scanner(template);
 var count = 0;
 var list = [];
@@ -875,6 +899,7 @@ list.push(tag.generator);
 }
 var result = new Evaluator(list, prop, lang);
 result.info = Trace().topInfo();
+basePath = basePathStr = null;
 return result;
 }
 var loadedUrl = {};
@@ -938,7 +963,7 @@ ASSERT(result, "Cannot find template named " + name);
 } else if (result.__type == "LazyTemplate") {
 Trace().pushTemplate(result.name, result.path);
 Trace().setText(result.text);
-evaluators[name] = result = loadTemplate(result.text, result.prop, result.lang);
+evaluators[name] = result = loadTemplate(result.text, result.prop, result.lang, result.path);
 Trace().pop();
 }
 return result;

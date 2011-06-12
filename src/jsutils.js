@@ -217,7 +217,7 @@ var Q = (function () {
 			return false;
 	};
 
-	Q.isArray = function (obj) { return typeof(obj) == "object" && typeof(obj.length) == "number" && obj[0] && obj[obj.length - 1]; }  
+	Q.isArray = function (obj) { return typeof(obj) == "object" && typeof(obj.length) == "number" && (0 in obj) && ((obj.length - 1) in obj); }  
 
 	/////////////////////////////////////
 	// Function utility
@@ -281,6 +281,7 @@ var Q = (function () {
 
 	Q.purify = function (str) {
 		str = Q.escape(str);
+		str = str.replace(/(^\ )|(\ $)/g, "&nbsp;");
 		str = str.replace(/\ \ /g, " &nbsp;");
 		str = str.replace(/\t/g, " &nbsp; &nbsp;");
 		return str;

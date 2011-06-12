@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="zh_CN">
+  <dict key="Captions"><![CDATA[
+    {
+      fig: "图{0}",
+      code: "代码{0}"
+    }
+  ]]></dict>
+</jsrllib>

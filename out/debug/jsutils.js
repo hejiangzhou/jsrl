@@ -314,7 +314,7 @@ return true;
 } else
 return false;
 };
-Q.isArray = function (obj) { return typeof(obj) == "object" && typeof(obj.length) == "number" && obj[0] && obj[obj.length - 1]; }
+Q.isArray = function (obj) { return typeof(obj) == "object" && typeof(obj.length) == "number" && (0 in obj) && ((obj.length - 1) in obj); }
 Q.nullFunc = function () { return null; };
 Q.constFunc = function (val) {
 return function (data) { return val; };
@@ -363,6 +363,7 @@ return str;
 };
 Q.purify = function (str) {
 str = Q.escape(str);
+str = str.replace(/(^\ )|(\ $)/g, "&nbsp;");
 str = str.replace(/\ \ /g, " &nbsp;");
 str = str.replace(/\t/g, " &nbsp; &nbsp;");
 return str;
