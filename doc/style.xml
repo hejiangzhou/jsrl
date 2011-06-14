@@ -51,10 +51,10 @@
     <li>@block{0}</li>
   ]]></template>
   <template name="Figure"><![CDATA[
-    <div class="figure">@block{0}</div>
-  ]]></template>
-  <template name="Picture"><![CDATA[
-    @img{$0}
+    <div class="figure">
+      @img{$1}
+      @Ix{"Caption", $0}@block{0}@end_Ix
+    </div>
   ]]></template>
   <template name="Caption"><![CDATA[
     @set{s, Article.registerCaption($0)}
@@ -93,7 +93,7 @@
   <template name="CodeFile"><![CDATA[
     <div class="code">
       @Ix{"Caption", $0}
-        @block{0} <div class="codeFilename">(@{$1})</div>
+        @block{0} <div class="codeFilename">(<a target="_blank" href="@{@"cases/" + $1}">@{$1}</a>)</div>
       @end_Ix
       @ns{, onload:Article.loadCodeFromFile(#, @"cases/" + $1)}
         @if{$code}
@@ -103,4 +103,3 @@
     </div>
   ]]></template>
 </jsrllib>
-

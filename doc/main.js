@@ -74,7 +74,10 @@ SubEntry.prototype = {
 var tutorialEntries = [
 	"overview",
 	"basics",
-	"api"
+	"api",
+    "ctrls",
+    "userCtrls",
+    "i18n"
 ];
 var topEntries = {
 	main: new TopEntry("main", [ "lang/{majorlang}/main.xml" ]),
