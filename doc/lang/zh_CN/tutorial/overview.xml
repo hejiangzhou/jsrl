@@ -18,9 +18,8 @@
         例如，基于Java的Web框架中，JSP就是视图层；PHP页面本身也是这种视图；Python的Djongo框架所提供的模板语言也属于视图层范畴。
       @end_Ix
   
-      @Ix{"Figure"}
-        @I{"Picture", @"figures/webframework-traditional.jpg"}
-        @Ix{"Caption", "fig:web_traditional"}传统瘦客户端的Web体系结构@end_Ix
+      @Ix{"Figure", "fig:web_traditional", @"figures/webframework-traditional.jpg"}
+        传统瘦客户端的Web体系结构
       @end_Ix
   
       @Ix{"Paragraph"}
@@ -32,21 +31,19 @@
         然而，用户难以根据自己的需要来定制视图，丧失了很大的灵活性，因此extjs的应用场合还比较受限。
       @end_Ix
   
-      @Ix{"Figure"}
-        @I{"Picture", @"figures/webframework-ajax.jpg"}
-        @Ix{"Caption", "fig:web_ajax"}基于Ajax的一般Web体系结构@end_Ix
+      @Ix{"Figure", "fig:web_ajax", @"figures/webframework-ajax.jpg"}
+        基于Ajax的一般Web体系结构
       @end_Ix
   
       @Ix{"Paragraph"}
         设计JSRL的初衷，就是提供客户端（浏览器端）的视图。
-        JSRL(JavaScript Render Language)是基于Javascript的一种呈现语言，用来呈现动态的HTML。
-        使用JSRL的Web应用（如@I{"Ref", "fig:web_jsrl"}所示），程序员可以以模板的形式来描述动态HTML，而动态HTML的生成工作可以交给JSRL库来完成。
+        JSRL (JavaScript Render Language)是基于Javascript的一种呈现语言，用来呈现动态的HTML。
+        使用JSRL的Web应用，程序员可以以模板的形式来描述动态HTML，而动态HTML的生成工作可以交给JSRL库来完成。
         这样，客户端就有了一个清晰的视图层，而将视图层抽出后的脚本的职能也变得更加单纯，因而更加清晰（如@I{"Ref", "fig:web_jsrl"}所示）。
       @end_Ix
       
-      @Ix{"Figure"}
-        @I{"Picture", @"figures/webframework-jsrl.jpg"}
-        @Ix{"Caption", "fig:web_jsrl"}应用JSRL的Web体系结构@end_Ix
+      @Ix{"Figure", "fig:web_jsrl", @"figures/webframework-jsrl.jpg"}
+        应用JSRL的Web体系结构
       @end_Ix
     @end_Ix
 
@@ -124,6 +121,17 @@
 
     @Ix{"CodeFile", "code:hw_jsrl_html", "helloworld.html", "html"}
       使用了JSRL的完整的HTML代码
+    @end_Ix
+
+    @Ix{"Paragraph"}
+      其中，jsutils.js和jsrl.js为使用JSRL所需要载入的两个基本库。
+      JSRL模板写在注释中，使用Jsrl.render()函数来呈现，3、12两个参数通过该函数传入。
+      执行该函数后，ID为hello的&lt;div&gt;中的JSRL模板会被JSRL库解析并且以指定的参数呈现，呈现后的HTML会被放到该&lt;div&gt;下。
+    @end_Ix
+
+    @Ix{"Paragraph"}
+      JSRL模板不仅可以放在HTML文件的注释中，还可以放在XML文件中，并被不同的HTML文件引用。
+      在页面中使用JSRL模板的各种方法，将在@I{"EntryLink", "tutorial.api"}一节详细介绍。
     @end_Ix
   ]]></template>
 </jsrllib>

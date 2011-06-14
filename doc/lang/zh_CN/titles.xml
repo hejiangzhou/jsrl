@@ -7,7 +7,10 @@
         _name : "教程",
         overview: "JSRL概览",
         basics: "JSRL语法和基本标签",
-        api: "在页面中使用JSRL的途径"
+        api: "JSRL的API",
+        ctrls: "JSRL标准控件",
+        userCtrls: "用户定义的JSRL控件",
+        i18n: "JSRL的国际化支持"
       }
     }
   ]]></dict>
