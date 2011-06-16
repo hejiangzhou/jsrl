@@ -25,4 +25,10 @@ select.langSel { font-size:12px; }
 .codeLineCode { display:inline; }
 .codeFilename { display:inline; font-weight:bold; font-family:Arial; font-style:italic; }
 
+.concept { display:inline; font-weight:bold; }
+.verb { display:inline; font-family:Consolas, Courier New; padding:0 5px 0 5px; color:#1f1f1f; font-weight:bold; }
+.def { border:1px solid black; margin:10px 20px 10px 20px; padding:5px 10px 5px 10px;  }
+.defsym { display:inline; font-family:Consolas, Courier New; }
+.defvar { display:inline; font-style:italic; }
+
 h1 { font-size:20px; margin:0; line-height:24px; }

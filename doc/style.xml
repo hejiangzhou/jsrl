@@ -41,11 +41,18 @@
     <h2>@{$0}</h2>
     @block{0}
   ]]></template>
+  <template name="SubSection"><![CDATA[
+    <h3>@{$0}</h3>
+    @block{0}
+  ]]></template>
   <template name="Paragraph"><![CDATA[
     <div class="paragraph">@block{0}</div>
   ]]></template>
   <template name="Enumerate"><![CDATA[
     <ol>@block{0}</ol>
+  ]]></template>
+  <template name="Itemize"><![CDATA[
+    <ul>@block{0}</ul>
   ]]></template>
   <template name="Item"><![CDATA[
     <li>@block{0}</li>
@@ -101,5 +108,21 @@
         @end_if
       @end_ns
     </div>
+  ]]></template>
+
+  <template name="Concept"><![CDATA[
+    <div class="concept">@{$0}</div>
+  ]]></template>
+  <template name="Verb"><![CDATA[
+    <div class="verb">@{$0}</div>
+  ]]></template>
+  <template name="Def"><![CDATA[
+    <div class="def">@block{0}</div>
+  ]]></template>
+  <template name="DefSym"><![CDATA[
+    <div class="defsym">@{$0}</div>
+  ]]></template>
+  <template name="DefVar"><![CDATA[
+    <div class="defvar">@{$0}</div>
   ]]></template>
 </jsrllib>
