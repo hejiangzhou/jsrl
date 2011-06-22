@@ -7,7 +7,7 @@
         @Ix{"Paragraph"}
           @I{"EntryLink", "tutorial.overview"}一节的例子中已经给出了一些最简单的JSRL模板。
           从中可以看出，JSRL模板中，动态的内容都是以@I{"Verb", "@"}开头的，这些表示的是JSRL@I{"Concept", "标签"}。
-          JSRL标签有很多种，用名字来区分，例如@I{"Verb", "@for"}和@I{"Verb", "@end_for"}就属于两种不同的标签。
+          JSRL标签有很多种，用名字来区分，例如@I{"Verb", "@for"}和@I{"Verb", "@E"}就属于两种不同的标签。
           JSRL模板中对标签的一处引用称为该标签的一个@I{"Concept", "实例"}。
            
           JSRL标签实例的一般形式为：
@@ -22,8 +22,8 @@
             @I{"DefSym", ","} 
             ......
             @I{"DefSym", "}"}
-          @end_Ix{"Def"}
-        @end_Ix
+          @E
+        @E
         
         @Ix{"Paragraph"}
           不同的标签具有不同的功能，也需要接收不同个数和类型的参数。
@@ -31,8 +31,8 @@
           此外，不少标签允许接收空参数，空出相应位置就表示一个空参数，例如，@I{"Verb", "@some_tag{value1, , value2}"}就表示共有3个参数，其中第2个为空，@I{"Verb", "@some_tag{}"}则表示仅有1个参数且为空。
           如果省略后面的大括号，例如@I{"Verb", "@some_tag"}，则表示参数个数为0。
           对于大部分标签而言，少提供一个参数和将最后一个参数设为空是等价的，因此@I{"Verb", "@some_tag{}"}和@I{"Verb", "@some_tag"}一般是等价的。
-        @end_Ix
-      @end_Ix
+        @E
+      @E
 
       @Ix{"SubSection", "参数类型——表达式"}
         
@@ -40,44 +40,44 @@
           @I{"Concept", "表达式"}是最常见的参数类型。
             参数中的表达式的语法与Javascript表达式的语法基本一样，可以使用任何Javascript运算符、引用任何全局变量（在网页中的全局变量即window对象的成员）。
             与普通的Javascript表达式的唯一区别在于，在作为JSRL标签参数的表达式中，可以引用@I{"Concept", "模板作用域"}中的变量。
-        @end_Ix
+        @E
 
         @Ix{"Paragraph"} 
           每个JSRL模板在呈现的过程中，都会形成一个相应的@I{"Concept", "模板作用域"}。
           模板作用域的生存周期与当前模板的呈现过程相始终。
           板作用域中的变量需以@I{"Verb", "$"}开头来引用，分为两类：
-        @end_Ix
+        @E
 
         @Ix{"Enumerate"}
           @Ix{"Item"}
             @I{"Verb", "$"}后跟数字：用来引用模板的参数，@I{"Verb", "$0"}为第一个参数，@I{"Verb", "$1"}为第二个参数，依此类推。
             注意，这里所说的模板的参数，不同于标签的参数。
             如有疑问，请回顾@I{"EntryLink", "tutorial.overview"}中的例子。
-          @end_Ix
+          @E
 
           @Ix{"Item"}
             @I{"Verb", "$"}后跟标识符：用来引用模板作用域中的其他变量，这些变量往往是在呈现模板的过程中被赋值的，例如在表达式中使用Javascript的赋值运算符(@I{"Verb", "="})就能够做到。
-          @end_Ix
-        @end_Ix
+          @E
+        @E
         
         @Ix{"Paragraph"}
           如果在表达式中需要出现本来意义的@I{"Verb", "$"}，例如需要引用的一个Javascript标识符本身就包含@I{"Verb", "$"}，那么需要将其写为@I{"Verb", "$$"}。
           在Javascript字符串和正则表达式中的@I{"Verb", "$"}无需做此处理。
-        @end_Ix
+        @E
 
         @Ix{"Paragraph"}
           例如，下面都是合法的表达式：
-        @end_Ix
+        @E
 
         @Ix{"Itemize"}
-          @Ix{"Item"}@I{"Verb", "Param.id"}@end_Ix
-          @Ix{"Item"}@I{"Verb", "10"}@end_Ix
-          @Ix{"Item"}@I{"Verb", "\"abc\""}@end_Ix
-          @Ix{"Item"}@I{"Verb", "$0.name"}@end_Ix
-          @Ix{"Item"}@I{"Verb", "$i + 1"}@end_Ix
-        @end_Ix
+          @Ix{"Item"}@I{"Verb", "Param.id"}@E
+          @Ix{"Item"}@I{"Verb", "10"}@E
+          @Ix{"Item"}@I{"Verb", "\"abc\""}@E
+          @Ix{"Item"}@I{"Verb", "$0.name"}@E
+          @Ix{"Item"}@I{"Verb", "$i + 1"}@E
+        @E
 
-      @end_Ix
+      @E
 
       @Ix{"SubSection", "参数类型——语句"}
         
@@ -86,23 +86,52 @@
           事实上，所有的表达式也都能够作为语句，因为Javascript的表达式都可以作为独立的Javascript语句，称为表达式语句。
           所有语句最后的分隔符@I{"Verb", ";"}都是可以省略的。
           语句也可以是一个复合语句，这样在一个语句中可以包括比较复杂的内容。
-        @end_Ix
+        @E
 
         @Ix{"Paragraph"}
           下面是一些合法语句的例子：
-        @end_Ix
+        @E
 
         @Ix{"Itemize"}
-          @Ix{"Item"}@I{"Verb", "alert(\"Hi\")"}@end_Ix
-          @Ix{"Item"}@I{"Verb", "if ($0 == null) alert($0.name)"}@end_Ix
-          @Ix{"Item"}@I{"Verb", "{ var t = $a; $a = $b; $b = t; }"}@end_Ix
-        @end_Ix
-      @end_Ix
+          @Ix{"Item"}@I{"Verb", "alert(\"Hi\")"}@E
+          @Ix{"Item"}@I{"Verb", "if ($0 == null) alert($0.name)"}@E
+          @Ix{"Item"}@I{"Verb", "{ var t = $a; $a = $b; $b = t; }"}@E
+        @E
 
-    @end_Ix
+      @E
+
+      @Ix{"SubSection", "参数类型——左值"}
+        
+        @Ix{"Paragraph"}
+          有些JSRL标签会设置某些对象的值，如@I{"Verb", "@set"}这一标签，它会设置当前的模板作用域中的一个变量的值。
+          如@I{"Verb", "@set{x, 3}"}可以将模板作用域中的变量@I{"Verb", "$x"}设置为@I{"Verb", "3"}。
+          在这样一个标签中，第一个参数并不是一个被求值的表达式，而是用来告诉标签设置哪个变量的值。
+          这种参数类型就称为@I{"Concept", "左值"}。
+        @E
+        
+        @Ix{"Paragraph"}
+          不仅一个变量名可以是左值，对象的成员、数组的元素也都允许是左值。
+          也就是说：
+        @E
+
+        @Ix{"Itemize"}
+          @Ix{"Item"}标识符可以是左值，如@I{"Verb", "x"}；@E
+          @Ix{"Item"}如果@I{"DefVar", "lval"}是左值，@I{"DefVar", "fld"}是一个标识符，则@I{"DefVar", "lval"}@I{"DefSym", "."}@I{"DefVar", "fld"}也是左值，如@I{"Verb", "x.height"}；@E
+          @Ix{"Item"}如果@I{"DefVar", "lval"}是左值，@I{"DefVar", "expr"}是一个JSRL表达式，则@I{"DefVar", "lval"}@I{"DefSym", "["}@I{"DefVar", "expr"}@I{"DefSym", "]"}也是左值，如@I{"Verb", "x[$i]"}，@I{"Verb", "x.s[$i]"}，@I{"Verb", "x[$i].t[$j]"}。@E
+        @E
+
+        @Ix{"Paragraph"}
+          
+
+
+        @E
+
+      @E
+
+    @E
 
     @Ix{"Section", "JSRL的基本标签"}
 
-    @end_Ix
+    @E
   ]]></template>
 </jsrllib>

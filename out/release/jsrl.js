@@ -832,8 +832,6 @@ this.setter = new Setter(args[0]);
 this.listSrc = evaluateFunc(args[1]);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 ForEachTag.prototype = {
 generate : function (data, env) {
@@ -857,8 +855,6 @@ this.cond = evaluateFunc(args[1]);
 this.incr = executeFunc(args[2]);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 ForTag.prototype = {
 generate : function (data, env) {
@@ -876,8 +872,6 @@ function WhileTag(args, scanner) {
 this.cond = evaluateFunc(args[0]);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 WhileTag.prototype = {
 generate : function (data, env) {
@@ -894,8 +888,6 @@ function DoTag(args, scanner) {
 ;
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 this.cond = evaluateFunc(last.generator.args[0]);
 }
 DoTag.prototype = {
@@ -915,7 +907,7 @@ this.cases = [];
 this.cases.push({ "cond" : evaluateFunc(args[0]), "body" : new Block() });
 var next = this.cases[0].body.appendUntilDummy(scanner);
 this.elseBody = null;
-while (next.type != "end_if") {
+while (next.type != "end_if" && next.type != "E") {
 ;
 var body = new Block();
 if (next.type == "elseif") {
@@ -973,8 +965,6 @@ if (next.type == "empty") {
 this.emptyBody = new Block();
 next = this.emptyBody.appendUntilDummy(scanner);
 }
-;
-;
 }
 GridTag.prototype = {
 generate : function (data, env) {
@@ -1301,8 +1291,6 @@ parseAttributes(this, generalAttParsers, args, 1);
 this.attributes.push(cmdClickParser.parse(args[0], this));
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 CmdxTag.prototype = {
 generate : function (data, env) {
@@ -1419,8 +1407,6 @@ this.setter = new Setter(args[0]);
 parseAttributes(this, formParserMap, args, 1);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 };
 Tag.prototype = {
 generate : function (data, env) {
@@ -1616,8 +1602,6 @@ return;
 function RadioGroupCtrlTag(args, scanner) {
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 RadioGroupCtrlTag.prototype = {
 generate : function (data, env, id) {
@@ -1674,8 +1658,6 @@ focus : function () { this.node.focus(); }
 function SelectCtrlTag(args, scanner) {
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 SelectCtrlTag.prototype = {
 generate : function (data, env, id) {
@@ -1714,8 +1696,6 @@ this.value = evaluateFunc(args[0]);
 parseAttributes(this, generalAttParsers, args, 1);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-;
-;
 }
 OptionxTag.prototype = {
 generate : function (data, env) {
@@ -1852,7 +1832,7 @@ var body = new Block();
 last = body.appendUntilDummy(scanner);
 ;
 this.blocks.push(body);
-} while (last.type != "end_Cx");
+} while (last.type != "end_Cx" && last.type != "E");
 }
 };
 CTag.prototype = {
@@ -1898,7 +1878,7 @@ var body = new Block();
 last = body.appendUntilDummy(scanner);
 ;
 this.blocks.push(body);
-} while (last.type != "end_Ix");
+} while (last.type != "end_Ix" && last.type != "E");
 }
 };
 ITag.prototype = {
@@ -2058,7 +2038,7 @@ function isCompatibleLang(lang, ref) {
 return lang == ref || isSubLang(lang, ref);
 }
 function isSubLang(lang, ref) {
-return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "_"))
+return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "E"))
 }
 function needsOverrideLang(lang, ref)
 {
@@ -2075,7 +2055,7 @@ function setLanguage(lang) {
 language = lang;
 metaVars.lang = lang;
 var i;
-while ((i = lang.indexOf("_")) > 0 && !(lang in majorLangs))
+while ((i = lang.indexOf("E")) > 0 && !(lang in majorLangs))
 lang = lang.substr(0, i);
 metaVars.majorlang = lang;
 }

@@ -1091,6 +1091,10 @@ loadForTag("DIV");
 loadForTag("SPAN");
 if (callback) postExec(callback);
 }
+function __check_end(startTagName, tag, name) {
+ASSERT(tag.type == "E" || tag.type == name, startTagName + ": expect @E or @" + name);
+ASSERT(tag.generator.args.length == 0, startTagName + ": @" + tag.type + " expect no argument");
+}
 function SetTag(args, scanner) {
 ASSERT(args.length == 2, "@set: need 2 arguments");
 this.setter = new Setter(args[0]);
@@ -1108,8 +1112,7 @@ this.setter = new Setter(args[0]);
 this.listSrc = evaluateFunc(args[1]);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_foreach", "@foreach: expect a @end_foreach to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@foreach: end_foreach expect no argument");
+__check_end("@foreach", last, "end_foreach");
 }
 ForEachTag.prototype = {
 generate : function (data, env) {
@@ -1133,8 +1136,7 @@ this.cond = evaluateFunc(args[1]);
 this.incr = executeFunc(args[2]);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_for", "@for: expect a @end_for to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@for: end_for expect no argument");
+__check_end("@for", last, "end_for");
 }
 ForTag.prototype = {
 generate : function (data, env) {
@@ -1152,8 +1154,7 @@ ASSERT(args.length == 1, "@while: need 1 argument");
 this.cond = evaluateFunc(args[0]);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_while", "@while: expect a @end_while to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@end_while: expect no argument");
+__check_end("@while", last, "end_while");
 }
 WhileTag.prototype = {
 generate : function (data, env) {
@@ -1170,8 +1171,7 @@ function DoTag(args, scanner) {
 ASSERT(args.length == 0, "@do: expect no argument");
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_do", "@do: expect a @end_do to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 1, "@end_do: expect 1 argument");
+__check_end("@while", last, "end_while");
 this.cond = evaluateFunc(last.generator.args[0]);
 }
 DoTag.prototype = {
@@ -1191,7 +1191,7 @@ this.cases = [];
 this.cases.push({ "cond" : evaluateFunc(args[0]), "body" : new Block() });
 var next = this.cases[0].body.appendUntilDummy(scanner);
 this.elseBody = null;
-while (next.type != "end_if") {
+while (next.type != "end_if" && next.type != "E") {
 ASSERT(next.type == "elseif" || next.type == "else", "@if: expect @elseif or @else or @end_if, unknown tag @" + next.type);
 var body = new Block();
 if (next.type == "elseif") {
@@ -1204,7 +1204,7 @@ this.elseBody = body;
 }
 next = body.appendUntilDummy(scanner);
 }
-ASSERT(next.generator.args.length == 0, "@end_if: expect no argument");
+__check_end("@if", next, "end_if");;
 }
 IfTag.prototype = {
 generate : function (data, env) {
@@ -1249,8 +1249,7 @@ ASSERT(next.generator.args.length == 0, "@empty: expect no argument");
 this.emptyBody = new Block();
 next = this.emptyBody.appendUntilDummy(scanner);
 }
-ASSERT(next.type == "end_grid", "@grid: expect @end_grid, unknown tag @" + next.type);
-ASSERT(next.generator.args.length == 0, "@end_grid: expect no argument");
+__check_end("@grid", next, "end_grid");
 }
 GridTag.prototype = {
 generate : function (data, env) {
@@ -1594,8 +1593,7 @@ parseAttributes(this, generalAttParsers, args, 1);
 this.attributes.push(cmdClickParser.parse(args[0], this));
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_cmdx", "@cmdx: expect a @end_cmdx to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@cmdx: end_cmdx expect no argument");
+__check_end("@cmdx", last, "end_cmdx");
 }
 CmdxTag.prototype = {
 generate : function (data, env) {
@@ -1717,8 +1715,7 @@ this.setter = new Setter(args[0]);
 parseAttributes(this, formParserMap, args, 1);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_" + name, "@" + name + ": expect a @end_" + name + " to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@end_" + name + ": expect no argument");
+__check_end("@" + name, last, "end_" + name);
 };
 Tag.prototype = {
 generate : function (data, env) {
@@ -1914,8 +1911,7 @@ return;
 function RadioGroupCtrlTag(args, scanner) {
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_radio_group", "@radio_group: expect a @end_radio_group to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@end_radio_group: expect no argument");
+__check_end("@radio_group", last, "end_radio_group");
 }
 RadioGroupCtrlTag.prototype = {
 generate : function (data, env, id) {
@@ -1974,8 +1970,7 @@ focus : function () { this.node.focus(); }
 function SelectCtrlTag(args, scanner) {
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_select", "@select: expect a @end_select to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@end_select: expect no argument");
+__check_end("@select", last, "end_select");
 }
 SelectCtrlTag.prototype = {
 generate : function (data, env, id) {
@@ -2014,8 +2009,7 @@ this.value = evaluateFunc(args[0]);
 parseAttributes(this, generalAttParsers, args, 1);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
-ASSERT(last.type == "end_optionx", "@optionx: expect an end_optionx to finish, unknown tag @" + last.type);
-ASSERT(last.generator.args.length == 0, "@end_optionx: expect no argument");
+__check_end("@optionx", last, "end_optionx");
 }
 OptionxTag.prototype = {
 generate : function (data, env) {
@@ -2150,9 +2144,9 @@ var last;
 do {
 var body = new Block();
 last = body.appendUntilDummy(scanner);
-ASSERT(last.type == "sep_Cx" || last.type == "end_Cx", "@Cx: expect a @sep_Cx or @end_Cx, unknown tag @" + last.type);
+ASSERT(last.type == "sep_Cx" || last.type == "end_Cx" || last.type == "E", "@Cx: expect a @sep_Cx, @end_Cx or @E, unknown tag @" + last.type);
 this.blocks.push(body);
-} while (last.type != "end_Cx");
+} while (last.type != "end_Cx" && last.type != "E");
 }
 };
 CTag.prototype = {
@@ -2197,9 +2191,9 @@ var last;
 do {
 var body = new Block();
 last = body.appendUntilDummy(scanner);
-ASSERT(last.type == "sep_Ix" || last.type == "end_Ix", "@Ix: expect a @sep_Ix or @end_Ix, unknown tag @" + last.type);
+ASSERT(last.type == "sep_Ix" || last.type == "end_Ix" || last.type == "E", "@Ix: expect a @sep_Ix, @end_Ix or @E, unknown tag @" + last.type);
 this.blocks.push(body);
-} while (last.type != "end_Ix");
+} while (last.type != "end_Ix" && last.type != "E");
 }
 };
 ITag.prototype = {
@@ -2362,7 +2356,7 @@ function isCompatibleLang(lang, ref) {
 return lang == ref || isSubLang(lang, ref);
 }
 function isSubLang(lang, ref) {
-return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "_"))
+return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "E"))
 }
 function needsOverrideLang(lang, ref, name)
 {
@@ -2379,7 +2373,7 @@ function setLanguage(lang) {
 language = lang;
 metaVars.lang = lang;
 var i;
-while ((i = lang.indexOf("_")) > 0 && !(lang in majorLangs))
+while ((i = lang.indexOf("E")) > 0 && !(lang in majorLangs))
 lang = lang.substr(0, i);
 metaVars.majorlang = lang;
 }
