@@ -2356,7 +2356,7 @@ function isCompatibleLang(lang, ref) {
 return lang == ref || isSubLang(lang, ref);
 }
 function isSubLang(lang, ref) {
-return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "E"))
+return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "_"))
 }
 function needsOverrideLang(lang, ref, name)
 {
@@ -2373,7 +2373,7 @@ function setLanguage(lang) {
 language = lang;
 metaVars.lang = lang;
 var i;
-while ((i = lang.indexOf("E")) > 0 && !(lang in majorLangs))
+while ((i = lang.indexOf("_")) > 0 && !(lang in majorLangs))
 lang = lang.substr(0, i);
 metaVars.majorlang = lang;
 }

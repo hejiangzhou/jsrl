@@ -2743,7 +2743,7 @@ var Jsrl = (function() {
 	}
 
     function isSubLang(lang, ref) {
-		return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "E"))
+		return (ref == null || ref.length == 0 || lang && Q.startsWith(lang, ref + "_"))
 	}
 
 //#ifdef DEBUG
@@ -2767,7 +2767,7 @@ var Jsrl = (function() {
 		language = lang;
 		metaVars.lang = lang;
 		var i;
-		while ((i = lang.indexOf("E")) > 0 && !(lang in majorLangs))
+		while ((i = lang.indexOf("_")) > 0 && !(lang in majorLangs))
 			lang = lang.substr(0, i);
 		metaVars.majorlang = lang;
 	}
