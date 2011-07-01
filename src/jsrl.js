@@ -1758,7 +1758,7 @@ var Jsrl = (function() {
 			result[arguments[i]] = new SimpleAttributeParser(arguments[i]);
 		return result;
 	}
-	var generalAttParsers = generalAttParsers = Q.union(idAttributeParser, simpleAttParserMap("class", "style"));
+	var generalAttParsers =  Q.union(idAttributeParser, simpleAttParserMap("class", "style"));
 	
 	function tagByIdName(tagName, id, name) { return "<" + tagName + " id=\"" + id + "\" name=\"" + name + "\" "; }
 	function tagById(tagName, id) { return tagByIdName(tagName, id, id); }
@@ -2143,7 +2143,8 @@ var Jsrl = (function() {
 		tagClass.prototype.defaultValue = defaultValue;
 		registerTag(tagName, tagClass);
 	}
-	var generalCtrlAttParsers = Q.union(generalAttParsers, valueCtrlAttParsers); 
+    var inputCtrlAttParsers = Q.union(generalAttParsers, simpleAttParserMap("tabindex", "accesskey"));
+	var generalCtrlAttParsers = Q.union(inputCtrlAttParsers, valueCtrlAttParsers); 
 	
 	// Define @text, @textarea, @password
 	function TextCtrl(id, needTrim) {
@@ -2270,7 +2271,7 @@ var Jsrl = (function() {
 
 	function RadioTag(args, scanner) {
 		this.value = evaluateFunc(args[0]);
-		parseAttributes(this, generalAttParsers, args, 1);
+		parseAttributes(this, inputCtrlAttParsers, args, 1);
 	}
 	RadioTag.prototype = {
 		generate : function (data, env) {
