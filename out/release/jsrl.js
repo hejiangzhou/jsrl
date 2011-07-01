@@ -1161,7 +1161,7 @@ for (var i = 0; i < arguments.length; i++)
 result[arguments[i]] = new SimpleAttributeParser(arguments[i]);
 return result;
 }
-var generalAttParsers = generalAttParsers = Q.union(idAttributeParser, simpleAttParserMap("class", "style"));
+var generalAttParsers = Q.union(idAttributeParser, simpleAttParserMap("class", "style"));
 function tagByIdName(tagName, id, name) { return "<" + tagName + " id=\"" + id + "\" name=\"" + name + "\" "; }
 function tagById(tagName, id) { return tagByIdName(tagName, id, id); }
 function subId(id, index) { return id + "_" + index; }
@@ -1502,7 +1502,8 @@ Q.extend(tagClass, CtrlBase);
 tagClass.prototype.defaultValue = defaultValue;
 registerTag(tagName, tagClass);
 }
-var generalCtrlAttParsers = Q.union(generalAttParsers, valueCtrlAttParsers);
+var inputCtrlAttParsers = Q.union(generalAttParsers, simpleAttParserMap("tabindex", "accesskey"));
+var generalCtrlAttParsers = Q.union(inputCtrlAttParsers, valueCtrlAttParsers);
 function TextCtrl(id, needTrim) {
 this.id = id;
 this.needTrim = needTrim;
@@ -1619,7 +1620,7 @@ return ctrl;
 registerCtrl("radio_group", RadioGroupCtrlTag, null, null, Q.union(valueCtrlAttParsers, idAttributeParser));
 function RadioTag(args, scanner) {
 this.value = evaluateFunc(args[0]);
-parseAttributes(this, generalAttParsers, args, 1);
+parseAttributes(this, inputCtrlAttParsers, args, 1);
 }
 RadioTag.prototype = {
 generate : function (data, env) {
