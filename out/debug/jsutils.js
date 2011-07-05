@@ -3,30 +3,31 @@ throw e;
 }
 function ASSERT(cond, msg) {
 if (!cond) {
-window.alert("Assertion failure: " + msg);
+LOG("Assertion failure: " + msg, "ERROR");
 ABORT();
 }
 }
 function WARNING(msg) {
-window.alert("Warning: " + msg);
+LOG("Warning: " + msg, "WARN");
 }
 function ERROR(msg, e) {
-window.alert("Error: " + msg);
+LOG("Error: " + msg, "ERROR");
 ABORT(e);
 }
 function WARNING_IF(cond, msg) {
 if (cond) WARNING(msg);
 }
 var __logwin = null, __msg = [];
-function LOG(msg) {
+function LOG(msg, level) {
 var doc;
-__msg.push([new Date(), msg]);
+if (!level) level = "INFO";
+__msg.push([new Date(), msg, level]);
 if (!__logwin) {
 __logwin = {};
 __logwin = window.open("", "_blank", "toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=1,copyhistory=0,width=600,height=400");
 doc = __logwin.document;
 doc.write("<html><head><meta charset=\"utf-8\"/><title>debug log</title>");
-doc.write("<style type=\"text/css\">div { font-size:12pt; } .time { color: #7f7f7f; margin-right: 10px; } </style>");
+doc.write("<style type=\"text/css\">div { font-size:12pt; } .time { color: #7f7f7f; } .level { margin-right:10px; } .ERROR { color:red; } .WARN { color:green; } .INFO { color:blue; } </style>");
 doc.write("</head><body></body></html>");
 doc.close();
 } else {
@@ -34,10 +35,11 @@ doc = __logwin.document;
 if (!doc) return;
 }
 for (var i = 0; i < __msg.length; i++) {
-var now = __msg[i][0]
+var now = __msg[i][0];
+var lv = __msg[i][2];
 var timeStr = Q.fill0(now.getHours(), 2) + ":" + Q.fill0(now.getMinutes(), 2) + ":" + Q.fill0(now.getSeconds(), 2) + "." + Q.fill0(now.getMilliseconds(), 3);
 var newDiv = doc.createElement("div");
-newDiv.innerHTML = "<span class=\"time\">[" + timeStr + "]</span>" + Q.htmlize(__msg[i][1]);
+newDiv.innerHTML = "<span class=\"time\">[" + timeStr + "]</span><span class=\"level " + lv + "\">[" + lv + "]</span>" + Q.htmlize(__msg[i][1]);
 doc.body.appendChild(newDiv);
 }
 __msg = [];
