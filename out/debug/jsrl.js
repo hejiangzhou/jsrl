@@ -1337,7 +1337,7 @@ for (var i = index; i < args.length; i++) {
 var att = parseAttribute(args[i]);
 var parser = parsers[att.name];
 if (parser == null && att.func)
-parser = new EventAttributeParser(att.name);
+parser = new EventAttParser(att.name);
 ASSERT(parser != null, "Unable to find parser for attribute " + att.name);
 ASSERT(!parser.isFuncAtt == !att.func, (att.func ? "'=' should be used for non-function attribute, not ':'" : "':' should be used for function attribute, not '='"));
 tag.attributes.push(parser.parse(att.value, tag));
@@ -1348,44 +1348,59 @@ var atts = tag.attributes;
 for (var i = 0; i < atts.length; i++)
 atts[i].generate(data, ctrl, tag, env);
 }
-function CtrlAttributeGenerator(name, value) {
+function CtrlAttGenerator(name, value) {
 this.name = name;
 this.value = value;
 }
-CtrlAttributeGenerator.prototype = {
+CtrlAttGenerator.prototype = {
 generate : function (data, ctrl, tag) {
 ctrl[this.name] = this.value(data);
 }
 };
-function CtrlAttributeParser(name) { this.name = name; }
-CtrlAttributeParser.prototype = {
+function CtrlAttParser(name) { this.name = name; }
+CtrlAttParser.prototype = {
 parse : function (value, tag) {
-return new CtrlAttributeGenerator(this.name, evaluateFunc(value));
+return new CtrlAttGenerator(this.name, evaluateFunc(value));
 }
 };
-function SimpleAttributeGenerator(name, value) {
+function SimpleAttGenerator(name, value) {
 this.name = name;
 this.value = value;
 }
-SimpleAttributeGenerator.prototype = {
+SimpleAttGenerator.prototype = {
 generate : function (data, ctrl, tag, env) {
 var value = this.value(data);
 if (value != null)
 env.push(" " + this.name + "=\"" + Q.escape(value + "") + "\" ");
 }
 };
-function SimpleAttributeParser(name) { this.name = name; }
-SimpleAttributeParser.prototype = {
+function SimpleAttParser(name) { this.name = name; }
+SimpleAttParser.prototype = {
 parse : function (value, tag) {
-return new SimpleAttributeGenerator(this.name, evaluateFunc(value));
+return new SimpleAttGenerator(this.name, evaluateFunc(value));
 }
 };
-function EventAttributeGenerator(type, handler) {
+function ValueAttGenerator(name, value) {
+this.name = name;
+this.value = value;
+}
+ValueAttGenerator.prototype = {
+generate : function (data, ctrl, tag, env) {
+ctrl[this.name] = this.value(data);
+}
+};
+function ValueAttParser(name) { this.name = name; }
+ValueAttParser.prototype = {
+parse : function (value, tag) {
+return new ValueAttGenerator(this.name, evaluateFunc(value));
+}
+};
+function EventAttGenerator(type, handler) {
 this.type = type;
 this.handler = handler;
 this.info = Trace().top();
 }
-EventAttributeGenerator.prototype = {
+EventAttGenerator.prototype = {
 getCtrlEventFunc : function (data, env) {
 var handler = this.handler;
 var dataClone = Q.clone(data);
@@ -1427,8 +1442,8 @@ return "ctrls.";
 return "self";
 }
 }
-function EventAttributeParser(type) { this.type = type; }
-EventAttributeParser.prototype = {
+function EventAttParser(type) { this.type = type; }
+EventAttParser.prototype = {
 isFuncAtt : true,
 parse : function (value, tag) {
 var scanner = new Scanner(value);
@@ -1438,7 +1453,7 @@ Trace().pushPos(value.pos);
 var result;
 try {
 var func = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s + "; };");
-result = new EventAttributeGenerator(this.type, func);
+result = new EventAttGenerator(this.type, func);
 } catch (e) {
 ERROR("Error occurs while evaluating an event handler", e);
 }
@@ -1447,12 +1462,12 @@ return result;
 }
 };
 var nullGenerator = { generate : function () { } };
-var idAttributeParser = {
+var idAttParser = {
 "id" : {
 parse : function (value, tag) { tag.idFunc = evaluateFunc(value); return nullGenerator; }
 }
 };
-var hiddenAttribute = { "hidden" : new CtrlAttributeParser("hidden") };
+var hiddenAttribute = { "hidden" : new CtrlAttParser("hidden") };
 var valueCtrlAttParsers = hiddenAttribute;
 function getId(tag, data, env) {
 return (tag.idFunc ? tag.idFunc(data) : env.generateId());
@@ -1460,10 +1475,16 @@ return (tag.idFunc ? tag.idFunc(data) : env.generateId());
 function simpleAttParserMap() {
 var result = {};
 for (var i = 0; i < arguments.length; i++)
-result[arguments[i]] = new SimpleAttributeParser(arguments[i]);
+result[arguments[i]] = new SimpleAttParser(arguments[i]);
 return result;
 }
-var generalAttParsers = Q.union(idAttributeParser, simpleAttParserMap("class", "style"));
+function valueAttParserMap() {
+var result = {};
+for (var i = 0; i < arguments.length; i++)
+result[arguments[i]] = new ValueAttParser(arguments[i]);
+return result;
+}
+var generalAttParsers = Q.union(idAttParser, simpleAttParserMap("class", "style"));
 function tagByIdName(tagName, id, name) { return "<" + tagName + " id=\"" + id + "\" name=\"" + name + "\" "; }
 function tagById(tagName, id) { return tagByIdName(tagName, id, id); }
 function subId(id, index) { return id + "_" + index; }
@@ -1492,7 +1513,7 @@ func.apply(self);
 return false;
 };
 }
-var imgParserMap = Q.union(generalAttParsers, {"width":new CtrlAttributeParser("width"), "height":new CtrlAttributeParser("height")});
+var imgParserMap = Q.union(generalAttParsers, {"width":new CtrlAttParser("width"), "height":new CtrlAttParser("height")});
 function ImgTag(args, scanner) {
 this.url = evaluateFunc(args[0]);
 parseAttributes(this, imgParserMap, args, 1);
@@ -1559,7 +1580,7 @@ env.push("/>");
 }
 };
 registerTag("img", ImgTag);
-var cmdClickParser = new EventAttributeParser("onclick");
+var cmdClickParser = new EventAttParser("onclick");
 function CmdCtrl(id, env) {
 this.id = id;
 this.parent = env.form;
@@ -1573,7 +1594,7 @@ ctrl.onclick = getSafeFunc(this.handlers.onclick);
 function CmdTag(args, scanner) {
 ASSERT(args.length >= 2, "@cmd: require at least 2 arguments");
 this.text = evaluateFunc(args[0]);
-parseAttributes(this, generalAttParsers, args, 2);
+parseAttributes(this, focusableAttParsers, args, 2);
 this.attributes.push(cmdClickParser.parse(args[1], this));
 }
 CmdTag.prototype = {
@@ -1703,11 +1724,11 @@ if (this.handlers && this.handlers.onload) this.handlers.onload();
 },
 "__type" : "FormCtrl"
 };
-var formParserMap = Q.union(hiddenAttribute, generalAttParsers, {"value": new EventAttributeParser("value")});
+var formParserMap = Q.union(hiddenAttribute, generalAttParsers, {"value": new EventAttParser("value")});
 var formEventNames = [ "submit", "show", "hide", "close" ];
 for (var i = 0; i < formEventNames.length; i++) {
 var name = formEventNames[i];
-formParserMap["on" + name] = new EventAttributeParser(name);
+formParserMap["on" + name] = new EventAttParser(name);
 }
 function registerFormNsTag(name, useForm) {
 var Tag = function (args, scanner) {
@@ -1811,8 +1832,8 @@ Q.extend(tagClass, CtrlBase);
 tagClass.prototype.defaultValue = defaultValue;
 registerTag(tagName, tagClass);
 }
-var inputCtrlAttParsers = Q.union(generalAttParsers, simpleAttParserMap("tabindex", "accesskey"));
-var generalCtrlAttParsers = Q.union(inputCtrlAttParsers, valueCtrlAttParsers);
+var focusableAttParsers = Q.union(generalAttParsers, simpleAttParserMap("tabindex", "accesskey"));
+var generalCtrlAttParsers = Q.union(focusableAttParsers, valueCtrlAttParsers);
 function TextCtrl(id, needTrim) {
 this.id = id;
 this.needTrim = needTrim;
@@ -1927,10 +1948,10 @@ env.currentRadioGroup = undefined;
 return ctrl;
 }
 };
-registerCtrl("radio_group", RadioGroupCtrlTag, null, null, Q.union(valueCtrlAttParsers, idAttributeParser));
+registerCtrl("radio_group", RadioGroupCtrlTag, null, null, Q.union(valueCtrlAttParsers, idAttParser));
 function RadioTag(args, scanner) {
 this.value = evaluateFunc(args[0]);
-parseAttributes(this, inputCtrlAttParsers, args, 1);
+parseAttributes(this, focusableAttParsers, args, 1);
 }
 RadioTag.prototype = {
 generate : function (data, env) {
@@ -2088,7 +2109,7 @@ for (var i = begId; i < args.length; i++) {
 var att = parseAttribute(args[i]);
 var parser;
 if (att.func) {
-var event = (new EventAttributeParser(att.name)).parse(att.value);
+var event = (new EventAttParser(att.name)).parse(att.value);
 events.push({"name":att.name, "e":event})
 } else {
 var func = evaluateFunc(att.value);
@@ -2422,7 +2443,10 @@ return {
 "getTemplate" : getTemplate,
 "parseAttributes" : parseAttributes,
 "generalAttParsers" : generalAttParsers,
+"focusableAttParsers" : focusableAttParsers,
 "generateAttributes" : generateAttributes,
+"simpleAttParserMap" : simpleAttParserMap,
+"valueAttParserMap" : valueAttParserMap,
 "registerTemplate" : registerTemplate,
 "parseFarTmpName" : parseFarTmpName,
 "registerPropParser" : registerPropParser,
