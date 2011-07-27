@@ -2776,6 +2776,14 @@ var Jsrl = (function() {
 			args[i] = arguments[i + 1];
 		return getDictText(key, args);
 	}
+
+	function dtext(v) {
+		if (v.length > 2 && v.charAt(0) == "@") {
+			v = v.substr(1);
+			if (v.charAt(0) != "@") v = D(v);
+		}
+		return v;
+	}
 	
 	function isCompatibleLang(lang, ref) {
 		return lang == ref || isSubLang(lang, ref);
@@ -2874,7 +2882,8 @@ var Jsrl = (function() {
 		"registerLangTransformer" : registerLangTransformer,
 		"addMajorLang" : addMajorLang,
 		"isSubLang" : isSubLang,
-		"D": D
+		"D": D,
+		"dtext": dtext
 	};
 
 })();
