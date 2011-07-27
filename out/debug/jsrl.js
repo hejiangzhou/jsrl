@@ -2266,8 +2266,12 @@ var metaVars = {};
 var dict = {};
 var language;
 var majorLangs = {};
+var langTrans = {};
 function DictPattern(pattern) {
 this.compile(pattern);
+}
+function registerLangTransformer(c, trans) {
+langTrans[c] = trans;
 }
 DictPattern.prototype = {
 compile : function (pattern) {
@@ -2284,7 +2288,7 @@ li = ++i;
 this.appendStr(strs);
 strs = [];
 var j = pattern.indexOf("}", i + 1);
-ASSERT(j > 0, "Cannot find maching '}' for '{'");
+ASSERT(j > 0, "Cannot find matching '}' for '{'");
 var keys = pattern.substring(i + 1, j).split(".");
 for (var k = 0; k < keys.length; k++)
 if (intReg.test(keys[k]))
@@ -2353,6 +2357,11 @@ v[n].__info = { lang: lang };
 }
 }
 function getDictText(key, args) {
+var p = key.indexOf(":"), t = "";
+if (p > 0) {
+t = key.substr(0, p);
+key = key.substr(p + 1);
+}
 var fields = key.split(".");
 var v = dict, lv;
 for (var i = 0; i < fields.length; i++) {
@@ -2365,7 +2374,13 @@ if (typeof(v) == "string") {
 v = new DictPattern(v);
 lv[fields.pop()] = v;
 }
-return v.apply(args);
+var r = v.apply(args);
+for (var i = 0; i < t.length; i++) {
+var c = t.charAt(i);
+if (c in langTrans)
+r = langTrans[c](r);
+}
+return r;
 }
 function D(key) {
 var n = arguments.length - 1;
@@ -2455,7 +2470,9 @@ return {
 "uniqueId" : uniqueId,
 "dispose" : dispose,
 "setLanguage" : setLanguage,
+"registerLangTransformer" : registerLangTransformer,
 "addMajorLang" : addMajorLang,
+"isSubLang" : isSubLang,
 "D": D
 };
 })();

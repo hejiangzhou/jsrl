@@ -2643,9 +2643,14 @@ var Jsrl = (function() {
 	var dict = {};
 	var language;
 	var majorLangs = {};
+	var langTrans = {};
 
 	function DictPattern(pattern) {
 		this.compile(pattern);
+	}
+	
+	function registerLangTransformer(c, trans) {	
+		langTrans[c] = trans;
 	}
 
 	DictPattern.prototype = {
@@ -2663,7 +2668,7 @@ var Jsrl = (function() {
 						this.appendStr(strs);
 						strs = [];
 						var j = pattern.indexOf("}", i + 1);
-						ASSERT(j > 0, "Cannot find maching '}' for '{'");
+						ASSERT(j > 0, "Cannot find matching '}' for '{'");
 						var keys = pattern.substring(i + 1, j).split(".");
 						for (var k = 0; k < keys.length; k++)
 							if (intReg.test(keys[k]))
@@ -2738,6 +2743,11 @@ var Jsrl = (function() {
 	}
 
 	function getDictText(key, args) {
+		var p = key.indexOf(":"), t = "";
+		if (p > 0) {
+			t = key.substr(0, p);
+			key = key.substr(p + 1);
+		}
 		var fields = key.split(".");
 		var v = dict, lv;
 		for (var i = 0; i < fields.length; i++) {
@@ -2750,7 +2760,13 @@ var Jsrl = (function() {
 			v = new DictPattern(v);
 			lv[fields.pop()] = v;
 		}
-		return v.apply(args);	
+		var r = v.apply(args);	
+		for (var i = 0; i < t.length; i++) {
+			var c = t.charAt(i);
+			if (c in langTrans)
+				r = langTrans[c](r);
+		}
+		return r;
 	}
 	
 	function D(key) {
@@ -2795,7 +2811,7 @@ var Jsrl = (function() {
 		metaVars.majorlang = lang;
 	}
 
-	// @D tag and @Dx tag
+	// @D tag
 	var DTag = function (args, scanner) {
 		ASSERT(args.length >= 1, "@D: need at least 1 argument");
 		this.keyName = evaluateFunc(args[0]);
@@ -2855,7 +2871,9 @@ var Jsrl = (function() {
 		"uniqueId" : uniqueId,
 		"dispose" : dispose,
 		"setLanguage" : setLanguage,
+		"registerLangTransformer" : registerLangTransformer,
 		"addMajorLang" : addMajorLang,
+		"isSubLang" : isSubLang,
 		"D": D
 	};
 
