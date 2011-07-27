@@ -9,13 +9,14 @@
     <script type="text/javascript">
         var langs = { "en_US": "American English", "en_GB": "British English", "zh_CN": "大陆简体", "zh_TW": "台灣正體" };
         var lang = "zh_CN";
-
+		
         Q.onready(function () {
           var hash = location.hash;
           var m = /lang=([\w]+)\b/.exec(hash);
           if (m) lang = m[1]
 
           Jsrl.setLanguage(lang);
+		  Jsrl.registerLangTransformer("l", Q.leadCapital);
     	  Jsrl.loadLibrary("jsrlTestLib.xml");
     	  Jsrl.loadLibrary("jsrlLangTestLib-{lang}.xml");
           Jsrl.loadAll();
@@ -42,9 +43,9 @@
             @D{"Demo.LangTest.date", { year: 1985, month: 4, day: 5 }}<br/>
             @D{"Demo.LangTest.select_color"}: 
             @select{, "red"}
-                @option{"red", Jsrl.D("Demo.LangTest.red")}
-                @option{"green", Jsrl.D("Demo.LangTest.green")}
-                @option{"blue", Jsrl.D("Demo.LangTest.blue")}
+                @option{"red", Jsrl.D("l:Demo.LangTest.red")}
+                @option{"green", Jsrl.D("l:Demo.LangTest.green")}
+                @option{"blue", Jsrl.D("l:Demo.LangTest.blue")}
             @end_select
             <br/>
 	 --></div>
