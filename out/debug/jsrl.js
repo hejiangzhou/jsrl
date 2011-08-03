@@ -1395,6 +1395,21 @@ parse : function (value, tag) {
 return new ValueAttGenerator(this.name, evaluateFunc(value));
 }
 };
+function createEventHandler(handler, data, env, ctrl, ctrls, args, info) {
+var dataClone = Q.clone(data);
+var form = env.form;
+var outerPos = data.__outerPos;
+return function (event) {
+try {
+return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
+} catch (e) {
+Trace().push(outerPos);
+Trace().pushTmp(info.info);
+Trace().setPos(info.pos);
+ERROR("Error occurs in event handler", e);
+}
+};
+}
 function EventAttGenerator(type, handler) {
 this.type = type;
 this.handler = handler;
@@ -1410,23 +1425,9 @@ return handler(event, env.doc, dataClone, ctrl, form, form.ctrls, args);
 }
 },
 generate : function (data, ctrl, tag, env, args) {
-var handler = this.handler;
-var dataClone = Q.clone(data);
 if (ctrl.handlers == null) ctrl.handlers = {};
-var form = env.form;
-var info = this.info;
-var outerPos = data.__outerPos;
-ctrl.handlers[this.type] = function (event) {
-var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : form.ctrls);
-try {
-return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
-} catch (e) {
-Trace().push(outerPos);
-Trace().pushTmp(info.info);
-Trace().setPos(info.pos);
-ERROR("Error occurs in event handler", e);
-}
-};
+var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : env.form.ctrls);
+ctrl.handlers[this.type] = createEventHandler(this.handler, data, env, ctrl, ctrls, args, this.info);
 }
 };
 function sharpParseFunc(scanner, value) {
@@ -1442,23 +1443,24 @@ return "ctrls.";
 return "self";
 }
 }
+function createEventFunc(value) {
+var scanner = new Scanner(value);
+var s = nextExpr(scanner, null, "#", sharpParseFunc);
+var r;
+Trace().pushPos(value.pos);
+try {
+r = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s.arg + "; };");
+Trace().pop();
+} catch (e) {
+ERROR("Error occurs while evaluating an event handler", e);
+}
+return r;
+}
 function EventAttParser(type) { this.type = type; }
 EventAttParser.prototype = {
 isFuncAtt : true,
 parse : function (value, tag) {
-var scanner = new Scanner(value);
-var s = nextExpr(scanner, null, "#", sharpParseFunc);
-s = s.arg;
-Trace().pushPos(value.pos);
-var result;
-try {
-var func = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s + "; };");
-result = new EventAttGenerator(this.type, func);
-} catch (e) {
-ERROR("Error occurs while evaluating an event handler", e);
-}
-Trace().pop();
-return result;
+return new EventAttGenerator(this.type, createEventFunc(value));
 }
 };
 var nullGenerator = { generate : function () { } };
@@ -2154,6 +2156,17 @@ generateAttributes(this, data, ctrl, env);
 }
 };
 registerTag("id", IdCtrlTag);
+function LoadTag(args, scanner) {
+ASSERT(args.length == 1, "@load: require exactly 1 argument");
+this.e = createEventFunc(args[0]);
+};
+LoadTag.prototype = {
+generate : function (data, env) {
+var h = createEventHandler(this.e, data, env, env.form, env.form.ctrls, null, Trace().top());
+env.addRenderHook({ onrender: h });
+}
+};
+registerTag("load", LoadTag);
 function COrCxTag(hasBlk) {
 var CTag = function (args, scanner) {
 ASSERT(args.length >= 2, "@" + (hasBlk ? "Cx" : "C") + ": need at least 2 arguments");
@@ -2390,7 +2403,7 @@ args[i] = arguments[i + 1];
 return getDictText(key, args);
 }
 function dtext(v) {
-if (v.length > 2 && v.charAt(0) == "@") {
+if (v && v.length > 2 && v.charAt(0) == "@") {
 v = v.substr(1);
 if (v.charAt(0) != "@") v = D(v);
 }
