@@ -28,6 +28,7 @@
 				@radio{$pm, id="rad" + $pm}@{$pm} 
 			@end_foreach
 		@end_radio_group
+		@load{#radio0.set(3)}
 		<br/>
 		列表框：
 		@select{select0, 11, style="color:red;", onchange: alert("列表框的值已改为" + #.get())}

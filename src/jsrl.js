@@ -1666,6 +1666,28 @@ var Jsrl = (function() {
 		}
 	};
 	
+	function createEventHandler(handler, data, env, ctrl, ctrls, args, info) {
+		var dataClone = Q.clone(data);
+		var form = env.form;
+//#ifdef DEBUG
+		var outerPos = data.__outerPos;
+//#endif
+		return function (event) {
+//#ifdef DEBUG
+			try {
+//#endif
+				return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
+//#ifdef DEBUG
+			} catch (e) {
+				Trace().push(outerPos);
+				Trace().pushTmp(info.info);
+				Trace().setPos(info.pos);
+				ERROR("Error occurs in event handler", e);
+			}
+//#endif
+		};
+
+	}
 	function EventAttGenerator(type, handler) {
 		this.type = type;
 		this.handler = handler;
@@ -1683,29 +1705,9 @@ var Jsrl = (function() {
 			}
 		},
 		generate : function (data, ctrl, tag, env, args) {
-			var handler = this.handler;
-			var dataClone = Q.clone(data);
 			if (ctrl.handlers == null) ctrl.handlers = {};
-			var form = env.form;
-//#ifdef DEBUG
-			var info = this.info;
-			var outerPos = data.__outerPos;
-//#endif
-			ctrl.handlers[this.type] = function (event) {
-				var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : form.ctrls);
-//#ifdef DEBUG
-				try {
-//#endif
-					return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
-//#ifdef DEBUG
-				} catch (e) {
-					Trace().push(outerPos);
-					Trace().pushTmp(info.info);
-					Trace().setPos(info.pos);
-					ERROR("Error occurs in event handler", e);
-				}
-//#endif
-			};
+			var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : env.form.ctrls);
+			ctrl.handlers[this.type] = createEventHandler(this.handler, data, env, ctrl, ctrls, args, this.info);
 		}
 	};
 
@@ -1723,31 +1725,29 @@ var Jsrl = (function() {
 		}
 	}
 	
+	function createEventFunc(value) {
+		var scanner = new Scanner(value);
+		var s = nextExpr(scanner, null, "#", sharpParseFunc);
+		var r;
+//#ifdef DEBUG
+		Trace().pushPos(value.pos);
+		try {
+			r = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s.arg + "; };");
+			Trace().pop();
+		} catch (e) {
+			ERROR("Error occurs while evaluating an event handler", e);
+		}
+//#else
+		r = evalFunc("function (event, document, __data, self, form, ctrls, args) { " + s + "; }");
+//#endif
+		return r;
+	}
+		
 	function EventAttParser(type) { this.type = type; }
 	EventAttParser.prototype = {
 		isFuncAtt : true,
 		parse : function (value, tag) {
-			var scanner = new Scanner(value);
-			var s = nextExpr(scanner, null, "#", sharpParseFunc);
-//#ifdef DEBUG
-			s = s.arg;
-			Trace().pushPos(value.pos);
-//#endif
-			var result;
-//#ifdef DEBUG
-			try {
-				var func = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s + "; };");
-//#else
-				var func = evalFunc("function (event, document, __data, self, form, ctrls, args) { " + s + "; }");
-//#endif
-				result = new EventAttGenerator(this.type, func);
-//#ifdef DEBUG
-			} catch (e) {
-				ERROR("Error occurs while evaluating an event handler", e);
-			}
-			Trace().pop();
-//#endif
-			return result; 
+			return new EventAttGenerator(this.type, createEventFunc(value));
 		}
 	};
 	
@@ -2510,6 +2510,23 @@ var Jsrl = (function() {
 		}
 	};
 	registerTag("id", IdCtrlTag);
+	
+	// Define @load
+	function LoadTag(args, scanner) {
+		ASSERT(args.length == 1, "@load: require exactly 1 argument");
+		this.e = createEventFunc(args[0]);
+	};
+	LoadTag.prototype = {
+		generate : function (data, env) {
+//#ifdef DEBUG
+			var h = createEventHandler(this.e, data, env, env.form, env.form.ctrls, null, Trace().top());
+//#else
+			var h = createEventHandler(this.e, data, env, env.form, env.form.ctrls, null);
+//#endif
+			env.addRenderHook({ onrender: h });
+		}
+	};
+	registerTag("load", LoadTag);
 
 	// @C tag and @Cx tag
 	function COrCxTag(hasBlk) {
@@ -2778,7 +2795,7 @@ var Jsrl = (function() {
 	}
 
 	function dtext(v) {
-		if (v.length > 2 && v.charAt(0) == "@") {
+		if (v && v.length > 2 && v.charAt(0) == "@") {
 			v = v.substr(1);
 			if (v.charAt(0) != "@") v = D(v);
 		}

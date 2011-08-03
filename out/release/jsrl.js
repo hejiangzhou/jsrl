@@ -1110,6 +1110,13 @@ parse : function (value, tag) {
 return new ValueAttGenerator(this.name, evaluateFunc(value));
 }
 };
+function createEventHandler(handler, data, env, ctrl, ctrls, args, info) {
+var dataClone = Q.clone(data);
+var form = env.form;
+return function (event) {
+return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
+};
+}
 function EventAttGenerator(type, handler) {
 this.type = type;
 this.handler = handler;
@@ -1124,14 +1131,9 @@ return handler(event, env.doc, dataClone, ctrl, form, form.ctrls, args);
 }
 },
 generate : function (data, ctrl, tag, env, args) {
-var handler = this.handler;
-var dataClone = Q.clone(data);
 if (ctrl.handlers == null) ctrl.handlers = {};
-var form = env.form;
-ctrl.handlers[this.type] = function (event) {
-var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : form.ctrls);
-return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
-};
+var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : env.form.ctrls);
+ctrl.handlers[this.type] = createEventHandler(this.handler, data, env, ctrl, ctrls, args, this.info);
 }
 };
 function sharpParseFunc(scanner, value) {
@@ -1147,16 +1149,18 @@ return "ctrls.";
 return "self";
 }
 }
+function createEventFunc(value) {
+var scanner = new Scanner(value);
+var s = nextExpr(scanner, null, "#", sharpParseFunc);
+var r;
+r = evalFunc("function (event, document, __data, self, form, ctrls, args) { " + s + "; }");
+return r;
+}
 function EventAttParser(type) { this.type = type; }
 EventAttParser.prototype = {
 isFuncAtt : true,
 parse : function (value, tag) {
-var scanner = new Scanner(value);
-var s = nextExpr(scanner, null, "#", sharpParseFunc);
-var result;
-var func = evalFunc("function (event, document, __data, self, form, ctrls, args) { " + s + "; }");
-result = new EventAttGenerator(this.type, func);
-return result;
+return new EventAttGenerator(this.type, createEventFunc(value));
 }
 };
 var nullGenerator = { generate : function () { } };
@@ -1840,6 +1844,17 @@ generateAttributes(this, data, ctrl, env);
 }
 };
 registerTag("id", IdCtrlTag);
+function LoadTag(args, scanner) {
+;
+this.e = createEventFunc(args[0]);
+};
+LoadTag.prototype = {
+generate : function (data, env) {
+var h = createEventHandler(this.e, data, env, env.form, env.form.ctrls, null);
+env.addRenderHook({ onrender: h });
+}
+};
+registerTag("load", LoadTag);
 function COrCxTag(hasBlk) {
 var CTag = function (args, scanner) {
 ;
@@ -2072,7 +2087,7 @@ args[i] = arguments[i + 1];
 return getDictText(key, args);
 }
 function dtext(v) {
-if (v.length > 2 && v.charAt(0) == "@") {
+if (v && v.length > 2 && v.charAt(0) == "@") {
 v = v.substr(1);
 if (v.charAt(0) != "@") v = D(v);
 }
