@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib lang="en">
-  <dict key="Titles"><![CDATA[
-    {
-      main: "Main Page",
-      tutorial: {
-        _name : "Tutorial",
-        overview: "Introduction to JSRL",
-        basics: "Syntax and Basic Tags in JSRL",
-        api: "API of JSRL",
-        ctrls: "Standard Controls of JSRL",
-        userCtrls: "User-defined Controls of JSRL",
-        i18n: "Internationalization Support of JSRL"
-      }
-    }
-  ]]></dict>
+	<dict key="Titles"><![CDATA[
+		{
+			main: "Main Page",
+			tutorial: {
+				_name : "Tutorial",
+				overview: "Introduction to JSRL",
+				basics: "Syntax and Basic Tags in JSRL",
+				api: "API of JSRL",
+				ctrls: "Standard Controls of JSRL",
+				userCtrls: "User-defined Controls of JSRL",
+				i18n: "Internationalization Support of JSRL"
+			},
+			ref: {
+				_name: "Reference",
+				concept: {
+					_name: "Concepts"
+				},
+				tag: {
+					_name: "Tags"
+				},
+				api: {
+					_name: "API functions"
+				}
+			}
+		}
+	]]></dict>
 </jsrllib>

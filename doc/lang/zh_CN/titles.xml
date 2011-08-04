@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib lang="zh_CN">
-  <dict key="Titles"><![CDATA[
-    {
-      main: "首页",
-      tutorial: {
-        _name : "教程",
-        overview: "JSRL概览",
-        basics: "JSRL语法和基本标签",
-        api: "JSRL的API",
-        ctrls: "JSRL标准控件",
-        userCtrls: "用户定义的JSRL控件",
-        i18n: "JSRL的国际化支持"
-      }
-    }
-  ]]></dict>
+	<dict key="Titles"><![CDATA[
+	{
+		main: "首页",
+		tutorial: {
+			_name : "教程",
+			overview: "JSRL概览",
+			basics: "JSRL语法和基本标签",
+			api: "JSRL的API",
+			ctrls: "JSRL标准控件",
+			userCtrls: "用户定义的JSRL控件",
+			i18n: "JSRL的国际化支持"
+		},
+		ref: {
+			_name: "参考",
+			concept: {
+				_name: "基本概念"
+			},
+			tag: {
+				_name: "标签"
+			},
+			api: {
+				_name: "API函数"
+			}
+		}	
+	}
+	]]></dict>
 </jsrllib>
 
