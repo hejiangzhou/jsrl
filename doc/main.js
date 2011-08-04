@@ -151,7 +151,7 @@ refEntries.tag.setSubItems([
 		"button",
 		"hidden",
 		"id",
-		"load",
+		"L",
 		"I",
 		"Ix",
 		"C",

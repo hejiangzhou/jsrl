@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=GB18030">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Test for controls</title>
     <script type="text/javascript" src="jsutils.js"></script>
     <script type="text/javascript" src="jsrl.js"></script>
@@ -14,65 +14,65 @@
 </head>
 <body onload="Jsrl.loadAll();">
 	<div id="area1"><!--
-	Render´ÎÊı£º@{times} <br/>
-	@text{out, "²»ÔÚformÖĞµÄÎÄ±¾¿ò"} <br/>
+	Renderæ¬¡æ•°ï¼š@{times} <br/>
+	@text{out, "ä¸åœ¨formä¸­çš„æ–‡æœ¬æ¡†"} <br/>
 	@form{x, onsubmit: {
-			#msg.node.innerHTML="ÒÑÌá½»";
+			#msg.node.innerHTML="å·²æäº¤";
 			trap();
-			alert("Ìá½»ÄÚÈİ: " + JSON.stringify(#.eval()));
+			alert("æäº¤å†…å®¹: " + JSON.stringify(#.eval()));
 		}}
 		@set{primes, [2, 3, 5, 7, 11, 13, 17, 19]}
-		¸´Ñ¡¿ò£º
-		@radio_group{radio0, 5, onchange: alert("Ñ¡ÏîÒÑ¸ÄÎª " + #.get()) } @# ÕâÀï5ÊÇ³õÖµ
+		å¤é€‰æ¡†ï¼š
+		@radio_group{radio0, 5, onchange: alert("é€‰é¡¹å·²æ”¹ä¸º " + #.get()) } @# è¿™é‡Œ5æ˜¯åˆå€¼
 			@foreach{pm, $primes}
 				@radio{$pm, id="rad" + $pm}@{$pm} 
 			@end_foreach
 		@end_radio_group
-		@load{#radio0.set(3)}
+		@L{#radio0.set(3)}
 		<br/>
-		ÁĞ±í¿ò£º
-		@select{select0, 11, style="color:red;", onchange: alert("ÁĞ±í¿òµÄÖµÒÑ¸ÄÎª" + #.get())}
-			@option{null, "²»Ñ¡"} 
+		åˆ—è¡¨æ¡†ï¼š
+		@select{select0, 11, style="color:red;", onchange: alert("åˆ—è¡¨æ¡†çš„å€¼å·²æ”¹ä¸º" + #.get())}
+			@option{null, "ä¸é€‰"} 
 			@foreach{pm, $primes}
-				@optionx{$pm, style="background-color:#afafaf;"} ËØÊı<b>@{$pm}</b> @end_optionx
+				@optionx{$pm, style="background-color:#afafaf;"} ç´ æ•°<b>@{$pm}</b> @end_optionx
 			@end_foreach
 		@end_select
 		<br/>
-		@checkbox{checkbox0, false, onchange: alert("¸´Ñ¡¿òµÄÖµ±»¸ÄÎªÁË" + #.get()) }ÕâÊÇÒ»¸ö³õÖµÎªfalseµÄcheckbox 
-		@checkbox{checkbox1, true, onchange: alert("¸´Ñ¡¿òµÄÖµ±»¸ÄÎªÁË" + #.get()) }ÕâÊÇÒ»¸ö³õÖµÎªtrueµÄcheckbox 
+		@checkbox{checkbox0, false, onchange: alert("å¤é€‰æ¡†çš„å€¼è¢«æ”¹ä¸ºäº†" + #.get()) }è¿™æ˜¯ä¸€ä¸ªåˆå€¼ä¸ºfalseçš„checkbox 
+		@checkbox{checkbox1, true, onchange: alert("å¤é€‰æ¡†çš„å€¼è¢«æ”¹ä¸ºäº†" + #.get()) }è¿™æ˜¯ä¸€ä¸ªåˆå€¼ä¸ºtrueçš„checkbox 
 		<br/>
 		Password: @password{pwd, ""}<br/> 
 		@for {$i = 0, $i < 3, $i++}
-			ÎÄ±¾¿ò@{$i}: @text{obj[$i].str, "ÎÄ±¾" + $i + "³õÖµ", size=30, onchange: alert("ÎÄ±¾¿ò" + $i + "µÄÖµÒÑ¸ÄÎª " + #.get()) }<br/>
-			¶àĞĞÎÄ±¾¿ò@{$i}: @textarea{obj[$i].lines, "¶àĞĞÎÄ±¾\n" + $i + "³õÖµ", rows=4, cols=60}<br/>
+			æ–‡æœ¬æ¡†@{$i}: @text{obj[$i].str, "æ–‡æœ¬" + $i + "åˆå€¼", size=30, onchange: alert("æ–‡æœ¬æ¡†" + $i + "çš„å€¼å·²æ”¹ä¸º " + #.get()) }<br/>
+			å¤šè¡Œæ–‡æœ¬æ¡†@{$i}: @textarea{obj[$i].lines, "å¤šè¡Œæ–‡æœ¬\n" + $i + "åˆå€¼", rows=4, cols=60}<br/>
 		@end_for
 		<br/>
 		
-		@# Ò»×é¹ØÓÚhiddenÊôĞÔµÄÊ¾Àı
+		@# ä¸€ç»„å…³äºhiddenå±æ€§çš„ç¤ºä¾‹
 		@for {$i = 0, $i < 3, $i++}
-			@# µÚÒ»¸öºÍ×îºóÒ»¸öcheckbox±¾ÉíÊÇÒş²ØµÄ£¬²»ÏÔÊ¾ÔÚ½á¹ûÖĞ
-			@checkbox{hidTest[$i].cb, false, hidden=($i != 1), onchange: #hidTest[$i].tb.hidden = !#.get()} ÏÔÊ¾ÓÒ±ßµÄÎÄ±¾¿ò
-			@# Õâ¸öÎÄ±¾¿òÊÇ·ñÒş²Ø£¬ÓÉ¸÷×ÔµÄcheckbox¿ØÖÆ
-			@text{hidTest[$i].tb, "ÓÃÓÚÒş²Ø²âÊÔµÄÎÄ±¾¿ò" + $i, hidden=true}
+			@# ç¬¬ä¸€ä¸ªå’Œæœ€åä¸€ä¸ªcheckboxæœ¬èº«æ˜¯éšè—çš„ï¼Œä¸æ˜¾ç¤ºåœ¨ç»“æœä¸­
+			@checkbox{hidTest[$i].cb, false, hidden=($i != 1), onchange: #hidTest[$i].tb.hidden = !#.get()} æ˜¾ç¤ºå³è¾¹çš„æ–‡æœ¬æ¡†
+			@# è¿™ä¸ªæ–‡æœ¬æ¡†æ˜¯å¦éšè—ï¼Œç”±å„è‡ªçš„checkboxæ§åˆ¶
+			@text{hidTest[$i].tb, "ç”¨äºéšè—æµ‹è¯•çš„æ–‡æœ¬æ¡†" + $i, hidden=true}
 			<br/>
 		@end_for 
 		
-		@# ÏÂÃæÊÇÒ»¸ö×ÓformµÄÊ¾Àı£¬Ö»ÓĞËùÓĞ×ÓformµÄsubmit·µ»Øtrue£¬¸¸formµÄsubmit²ÅÄÜ±»Ö´ĞĞ
+		@# ä¸‹é¢æ˜¯ä¸€ä¸ªå­formçš„ç¤ºä¾‹ï¼Œåªæœ‰æ‰€æœ‰å­formçš„submitè¿”å›trueï¼Œçˆ¶formçš„submitæ‰èƒ½è¢«æ‰§è¡Œ
 		@form{verify, onsubmit: {
 			if (#txt.get() == "8234")
 				return true;
 			else {
-				alert("ÇëÕıÈ·ÊäÈëÑéÖ¤Âë£¡");
+				alert("è¯·æ­£ç¡®è¾“å…¥éªŒè¯ç ï¼");
 				return false;
 			}
 		}}
-			ÑéÖ¤Âë(8234)£º@text{txt} 
+			éªŒè¯ç (8234)ï¼š@text{txt} 
 		@end_form
 		<br/>
 		
-		@# ÏÂÃæÊÇ×Ó¿Ø¼şÊ¾Àı£¬¿Õ¼äÔÚjsrlTestLib.xmlÖĞ
-		×Ó¿Ø¼ş1£º@C{mul[0], "multiple_ctrl"} <br/>
-		×Ó¿Ø¼ş2£º@C{mul[1], "multiple_ctrl", x=4, y=6, onchange: alert("³Ë·¨¿Ø¼şµÄÖµ±äÎªÁË" + #.eval() + "(" + args[0] + "*" + args[1] + ")")} <br/>
+		@# ä¸‹é¢æ˜¯å­æ§ä»¶ç¤ºä¾‹ï¼Œç©ºé—´åœ¨jsrlTestLib.xmlä¸­
+		å­æ§ä»¶1ï¼š@C{mul[0], "multiple_ctrl"} <br/>
+		å­æ§ä»¶2ï¼š@C{mul[1], "multiple_ctrl", x=4, y=6, onchange: alert("ä¹˜æ³•æ§ä»¶çš„å€¼å˜ä¸ºäº†" + #.eval() + "(" + args[0] + "*" + args[1] + ")")} <br/>
 		
 		@C{, "autoInc", initVal="test"}
 		
