@@ -2526,7 +2526,7 @@ var Jsrl = (function() {
 			env.addRenderHook({ onrender: h });
 		}
 	};
-	registerTag("load", LoadTag);
+	registerTag("L", LoadTag);
 
 	// @C tag and @Cx tag
 	function COrCxTag(hasBlk) {

@@ -2166,7 +2166,7 @@ var h = createEventHandler(this.e, data, env, env.form, env.form.ctrls, null, Tr
 env.addRenderHook({ onrender: h });
 }
 };
-registerTag("load", LoadTag);
+registerTag("L", LoadTag);
 function COrCxTag(hasBlk) {
 var CTag = function (args, scanner) {
 ASSERT(args.length >= 2, "@" + (hasBlk ? "Cx" : "C") + ": need at least 2 arguments");
