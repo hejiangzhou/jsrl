@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib lang="en">
-  <dict key="Captions"><![CDATA[
-    {
-      fig: "Figure {0}",
-      code: "Code {0}"
-    }
-  ]]></dict>
+	<dict key="Captions"><![CDATA[
+		{
+			fig: "Figure {0}",
+			code: "Code {0}"
+		}
+	]]></dict>
 </jsrllib>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib lang="en">
-  <template name="Entry.tutorial.overview"><![CDATA[
-    Introduction to JSRL.
-  ]]></template>
+	<template name="Entry.tutorial.overview"><![CDATA[
+		Introduction to JSRL.
+	]]></template>
 </jsrllib>

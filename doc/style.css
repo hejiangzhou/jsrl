@@ -7,8 +7,8 @@ body { padding:0; margin:0; background-color:#dfe8df; }
 
 div.langSel { padding:10px 10px 10px 10px; margin-bottom:10px; background-color:#8fbf8f; font-size:12px; line-height:24px; }
 select.langSel { font-size:12px; }
-.menuItem { margin:2px 10px 2px 10px; font-size:12px; }
-.menuItemGroup { margin-bottom:10px; margin-left:10px; }
+.menuItem { margin:2px 8px 2px 8px; font-size:12px; }
+.menuItemGroup { margin-bottom:10px; margin-left:8px; }
 
 .categoryEntry { font-weight:bold; color:#00003f; margin-top:5px; }
 .activeEntryLink { font-weight:bold; }

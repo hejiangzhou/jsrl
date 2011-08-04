@@ -18,82 +18,187 @@ function getCurrentEntry() {
 	return entry;
 }
 
-function mapEntryDesc(map) {
+function mapEntryDesc(category, map, langType) {
 	return function (key) {
-		return map[key];
+		var value = map[key];
+		if (typeof(value) == "string")
+			return new LeafEntry(category, key, langType);
+		else
+			return value;
 	};
 }
-function subEntryDesc(category, langType) {
+function leafEntryDesc(category, langType, titleGetter) {
 	return function (key) {
-		return new SubEntry(category, key, langType);
+		return new LeafEntry(category, key, langType, titleGetter);
 	};
 }
 
-function TopEntry(name, xmls, subList, langType) {
-	this._name = name;
-	this._xmls = xmls;
-	if (subList) {
-		this._subList = subList;
-		this._subDesc = subEntryDesc(name, langType);
-	}
+function MenuItem(parent, key, langType) {
+	this._parent = parent;
+	this._key = key;
+	this._langType = langType || 0;
+	this._name = (parent ? parent.getName() + "." : "") + key;
+	this._path = (parent ? parent.getPath() + "/" : "") + key;
 }
-TopEntry.prototype = {
+MenuItem.prototype = {
 	getName : function () { return this._name; },
+	getKey : function () { return this._key; },
+	getPath : function () { return this._path; },
 	loadXmls : function () {
+		if ((this._langType & LOAD_COMMON) != 0)
+			Jsrl.loadLibrary(this._path + ".xml");
+		if ((this._langType & LOAD_LANGSPEC) != 0)
+			Jsrl.loadLibrary("lang/{majorlang}/" + this._path + ".xml");
+	}
+};
+
+function Category(parent, key, langType, xmls) {
+	MenuItem.call(this, parent, key, langType);
+	this._xmls = xmls || [];
+}
+Category.prototype = {
+	getTitle : function () {
+		return Jsrl.D("Titles." + this.getName() + "._name");
+	},
+	loadXmls : function () {
+		MenuItem.prototype.loadXmls.call(this);
 		for (var i in this._xmls)
 			Jsrl.loadLibrary(this._xmls[i]);
+	},
+	setSubItems : function (subList, subDesc) {
+		this._subList = subList;
+		this._subDesc = subDesc;
 	},
 	getSubList : function () { return this._subList; },
 	getSubDesc : function () { return this._subDesc; }
 };
+Q.extend(Category, MenuItem);
 
-function SubEntry(category, key, langType) {
-	this._category = category;
-	this._key = key;
-	this._langType = langType;
+function LeafEntry(parent, key, langType, titleGetter) {
+	MenuItem.call(this, parent, key, langType);
+	this._titleGetter = titleGetter;
 }
-SubEntry.prototype = {
-	getName : function () { return this._category + "." + this._key; },
-	loadXmls : function () {
-		var path = this._category + "/" + this._key + ".xml";
-		if ((this._langType & LOAD_COMMON) != 0)
-			Jsrl.loadLibrary(path);
-		if ((this._langType & LOAD_LANGSPEC) != 0)
-			Jsrl.loadLibrary("lang/{majorlang}/" + path);
-	},
+LeafEntry.prototype = {
 	getTitle : function () {
-		if (this._subDesc)
-			return Jsrl.D("Titles." + this._name);
+		if (this._titleGetter)
+			return this._titleGetter(this);
 		else
-			return Jsrl.D("Titles." + this._name + "._name");
+			return Jsrl.D("Titles." + this.getName());
 	},
 	getSubList : function () { return null; },
 	getSubDesc : function () { return null; }
 };
+Q.extend(LeafEntry, MenuItem);
 
-var tutorialEntries = [
-	"overview",
-	"basics",
-	"api",
-    "ctrls",
-    "userCtrls",
-    "i18n"
-];
 var topEntries = {
-	main: new TopEntry("main", [ "lang/{majorlang}/main.xml" ]),
-	tutorial: new TopEntry("tutorial", null, tutorialEntries, LOAD_LANGSPEC)
+	main: new LeafEntry(null, "main", LOAD_LANGSPEC),
+	tutorial: new Category(null, "tutorial"),
+	ref: new Category(null, "ref")
 };
-var topDesc = mapEntryDesc(topEntries);
+topEntries.tutorial.setSubItems([
+		"overview",
+		"basics",
+		"api",
+		"ctrls",
+		"userCtrls",
+		"i18n"
+	], leafEntryDesc(topEntries.tutorial, LOAD_LANGSPEC));
 
-function loadEntry(key) {
-	Article.reset();
-	currentEntry = key;
+var refEntries = {
+	concept: new Category(topEntries.ref, "concept"),
+	tag: new Category(topEntries.ref, "tag"),
+	api: new Category(topEntries.ref, "api")
+};
+topEntries.ref.setSubItems(refEntries, mapEntryDesc(topEntries.ref, refEntries));
+
+refEntries.concept.setSubItems([
+	], leafEntryDesc(refEntries.concept, LOAD_LANGSPEC));
+
+var specialTagNameMap = {
+	"_expr": "@{}",
+	"_htmlize": "@_"
+}
+refEntries.tag.setSubItems([
+		"_expr",
+		"_htmlize",
+		"html",
+		"set",
+		"foreach",
+		"for",
+		"while",
+		"do",
+		"if",
+		"break",
+		"continue",
+		"return",
+		"exit",
+		"img",
+		"grid",
+		"cmd",
+		"cmdx",
+		"form",
+		"ns",
+		"text",
+		"password",
+		"textarea",
+		"checkbox",
+		"radio_group",
+		"radio",
+		"select",
+		"option",
+		"optionx",
+		"submit",
+		"button",
+		"hidden",
+		"id",
+		"load",
+		"I",
+		"Ix",
+		"C",
+		"Cx",
+		"block",
+		"D"
+	],
+	leafEntryDesc(refEntries.tag, LOAD_LANGSPEC,
+	function (entry) { return specialTagNameMap[entry.getKey()] || "@" + entry.getKey(); }));
+
+refEntries.api.setSubItems([
+		"render",
+		"renderTextTemp",
+		"rerender",
+		"renderData",
+		"renderNode",
+		"attachNode",
+		"clear",
+		"loadLibrary",
+		"loadAll",
+		"loadTemplate",
+		"findTemplate",
+		"isLoading",
+		"getJsrlTemplate",
+		"getTemplate",
+		"D",
+		"dtext"
+	],
+	leafEntryDesc(refEntries.api, LOAD_LANGSPEC,
+	function (entry) { return "Jsrl." + entry.getKey() + "()"; }));
+
+var topDesc = mapEntryDesc(null, topEntries);
+
+function getEntry(key) {
 	var keys = key.split(".");
 	var d = topDesc, e;
 	for (var i = 0; i < keys.length; i++) {
 		e = d(keys[i]);
 		d = e.getSubDesc();
 	}
+	return e;
+}
+	
+function loadEntry(key) {
+	Article.reset();
+	currentEntry = key;
+	var e = getEntry(key);
 	e.loadXmls();
 	Jsrl.render("root", [ key ]);
 }

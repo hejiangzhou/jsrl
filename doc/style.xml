@@ -1,128 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib>
-  <require path="lang/{majorlang}/caption.xml"/>
-  <template name="Menu"><![CDATA[
-    <div class="langSel">
-      @D{"Words.language"} 
-      @select{lang, currentLang, class="langSel", onchange:setLanguage(#.get())}
-        @foreach{lang, languages}
-          @option{$lang, languages[$lang]}
-        @E
-      @E
-    </div>
-    @I{"SubMenu", topEntries, topDesc}
-  ]]></template>
-  <template name="SubMenu"><![CDATA[
-    @foreach{key, $0}
-      @set{desc, $1($key)}
-      @set{subList, $desc.getSubList()}
-      <div class="menuItem">
-      @if {$subList}
-          <div class="categoryEntry">@D{"Titles." + $desc.getName() + "._name"}</div>
-        @else
-          @I{"EntryLink", $desc.getName()}
-        @E
-        @if {$subList}
-          <div class="menuItemGroup">
-            @I{"SubMenu", $subList, $desc.getSubDesc()}
-          </div>
-        @E
-      </div>
-    @E
-  ]]></template>
-  <template name="EntryLink"><![CDATA[
-    @if {currentEntry == $0}
-      <div class="activeEntryLink">@D{"Titles." + $0}</div>
-    @else
-      <a class="entryLink" href="#@{$0}">@D{"Titles." + $0}</a>
-    @E
-  ]]></template>
-  <template name="Section"><![CDATA[
-    <h2>@{$0}</h2>
-    <div class="section">@block{0}</div>
-  ]]></template>
-  <template name="SubSection"><![CDATA[
-    <h3>@{$0}</h3>
-    <div class="subsection">@block{0}</div>
-  ]]></template>
-  <template name="Paragraph"><![CDATA[
-    <div class="paragraph">@block{0}</div>
-  ]]></template>
-  <template name="Enumerate"><![CDATA[
-    <ol>@block{0}</ol>
-  ]]></template>
-  <template name="Itemize"><![CDATA[
-    <ul>@block{0}</ul>
-  ]]></template>
-  <template name="Item"><![CDATA[
-    <li>@block{0}</li>
-  ]]></template>
-  <template name="Figure"><![CDATA[
-    <div class="figure">
-      @img{$1}
-      @Ix{"Caption", $0}@block{0}@E
-    </div>
-  ]]></template>
-  <template name="Caption"><![CDATA[
-    @set{s, Article.registerCaption($0)}
-    <div class="caption"><div class="captionNumber">@D{$s.titleKey, $s.number}</div>@block{0}</div>
-  ]]></template>
-  <template name="Ref"><![CDATA[
-    @ns{, class="ref", onload:Article.initRef(#, $0)}
-      @if{$ref}@D{$ref.titleKey, $ref.number}@E
-    @E
-  ]]></template>
-  <template name="Code"><![CDATA[
-    <div class="code">
-      @Ix{"Caption", $0}
-        @block{0}
-      @E
-      @block{1}
-    </div>
-  ]]></template>
-  <template name="CodeBlock"><![CDATA[
-    @set{n, 0}
-    @!{
-      $lines = $1.split("\n");
-      if ($lines[$lines.length - 1] == "") $lines.pop();
-      if ($lines.length > 0 && $lines[0] == "")
-        Q.arrRemove($lines, 0);
-      $width = ($lines.length + "").length;
-    }
-    <div class="codeBlock">
-    @for{$i = 0, $i < $lines.length, $i++}
-      <div class="codeLine">
-        <div class="codeLineNumber">@{Article.lineNumber($i + 1, $width)}</div><div class="codeLineCode">@{$lines[$i]}</div>
-      </div>
-    @E
-    </div>
-  ]]></template> 
-  <template name="CodeFile"><![CDATA[
-    <div class="code">
-      @Ix{"Caption", $0}
-        @block{0} <div class="codeFilename">(<a target="_blank" href="@{@"cases/" + $1}">@{$1}</a>)</div>
-      @E
-      @ns{, onload:Article.loadCodeFromFile(#, @"cases/" + $1)}
-        @if{$code}
-          @I{"CodeBlock", $2, $code}
-        @E
-      @E
-    </div>
-  ]]></template>
+	<require path="lang/{majorlang}/caption.xml"/>
+	<template name="Menu"><![CDATA[
+		<div class="langSel">
+			@D{"Words.language"} 
+			@select{lang, currentLang, class="langSel", onchange:setLanguage(#.get())}
+				@foreach{lang, languages}
+					@option{$lang, languages[$lang]}
+				@E
+			@E
+		</div>
+		@I{"SubMenu", topEntries, topDesc}
+	]]></template>
+	<template name="SubMenu"><![CDATA[
+		@foreach{key, $0}
+			@set{desc, $1($key)}
+			@set{subList, $desc.getSubList()}
+			<div class="menuItem">
+				@if {$subList}
+					<div class="categoryEntry">@{$desc.getTitle()}</div>
+				@else
+					@I{"EntryLink", $desc.getName()}
+				@E
+				@if {$subList}
+					<div class="menuItemGroup">
+						@I{"SubMenu", $subList, $desc.getSubDesc()}
+					</div>
+				@E
+			</div>
+		@E
+	]]></template>
+	<template name="EntryLink"><![CDATA[
+		@set{title, getEntry($0).getTitle()}
+		@if {currentEntry == $0}
+			<div class="activeEntryLink">@{$title}</div>
+		@else
+			<a class="entryLink" href="#@{$0}">@{$title}</a>
+		@E
+	]]></template>
+	<template name="Section"><![CDATA[
+		<h2>@{$0}</h2>
+		<div class="section">@block{0}</div>
+	]]></template>
+	<template name="SubSection"><![CDATA[
+		<h3>@{$0}</h3>
+		<div class="subsection">@block{0}</div>
+	]]></template>
+	<template name="Paragraph"><![CDATA[
+		<div class="paragraph">@block{0}</div>
+	]]></template>
+	<template name="Enumerate"><![CDATA[
+		<ol>@block{0}</ol>
+	]]></template>
+	<template name="Itemize"><![CDATA[
+		<ul>@block{0}</ul>
+	]]></template>
+	<template name="Item"><![CDATA[
+		<li>@block{0}</li>
+	]]></template>
+	<template name="Figure"><![CDATA[
+		<div class="figure">
+			@img{$1}
+			@Ix{"Caption", $0}@block{0}@E
+		</div>
+	]]></template>
+	<template name="Caption"><![CDATA[
+		@set{s, Article.registerCaption($0)}
+		<div class="caption"><div class="captionNumber">@D{$s.titleKey, $s.number}</div>@block{0}</div>
+	]]></template>
+	<template name="Ref"><![CDATA[
+		@ns{, class="ref", onload:Article.initRef(#, $0)}
+			@if{$ref}@D{$ref.titleKey, $ref.number}@E
+		@E
+	]]></template>
+	<template name="Code"><![CDATA[
+		<div class="code">
+			@Ix{"Caption", $0}
+				@block{0}
+			@E
+			@block{1}
+		</div>
+	]]></template>
+	<template name="CodeBlock"><![CDATA[
+		@set{n, 0}
+		@!{
+			$lines = $1.split("\n");
+			if ($lines[$lines.length - 1] == "") $lines.pop();
+			if ($lines.length > 0 && $lines[0] == "")
+				Q.arrRemove($lines, 0);
+			$width = ($lines.length + "").length;
+		}
+		<div class="codeBlock">
+		@for{$i = 0, $i < $lines.length, $i++}
+			<div class="codeLine">
+				<div class="codeLineNumber">@{Article.lineNumber($i + 1, $width)}</div><div class="codeLineCode">@{$lines[$i]}</div>
+			</div>
+		@E
+		</div>
+	]]></template> 
+	<template name="CodeFile"><![CDATA[
+		<div class="code">
+			@Ix{"Caption", $0}
+				@block{0} <div class="codeFilename">(<a target="_blank" href="@{@"cases/" + $1}">@{$1}</a>)</div>
+			@E
+			@ns{, onload:Article.loadCodeFromFile(#, @"cases/" + $1)}
+				@if{$code}
+					@I{"CodeBlock", $2, $code}
+				@E
+			@E
+		</div>
+	]]></template>
 
-  <template name="Concept"><![CDATA[
-    <div class="concept">@{$0}</div>
-  ]]></template>
-  <template name="Verb"><![CDATA[
-    <div class="verb">@{$0}</div>
-  ]]></template>
-  <template name="Def"><![CDATA[
-    <div class="def">@block{0}</div>
-  ]]></template>
-  <template name="DefSym"><![CDATA[
-    <div class="defsym">@{$0}</div>
-  ]]></template>
-  <template name="DefVar"><![CDATA[
-    <div class="defvar">@{$0}</div>
-  ]]></template>
+	<template name="Concept"><![CDATA[
+		<div class="concept">@{$0}</div>
+	]]></template>
+	<template name="Verb"><![CDATA[
+		<div class="verb">@{$0}</div>
+	]]></template>
+	<template name="Def"><![CDATA[
+		<div class="def">@block{0}</div>
+	]]></template>
+	<template name="DefSym"><![CDATA[
+		<div class="defsym">@{$0}</div>
+	]]></template>
+	<template name="DefVar"><![CDATA[
+		<div class="defvar">@{$0}</div>
+	]]></template>
 </jsrllib>

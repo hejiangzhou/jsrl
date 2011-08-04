@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jsrllib lang="en">
-  <template name="Entry.main"><![CDATA[
-    @Ix{"Paragraph"}
-      JSRL (JavaScript Render Language) is an AJAX framework,
-      which provides the following functionality:
-    @end_Ix
-    
-    @Ix{"Enumerate"}
-        @Ix{"Item"}With its help, programmers only need to insert a few tags among HTML code to format and render JSON data retrieving dynamically by AJAX.@end_Ix
-        @Ix{"Item"}This framework can extract data from input controls and generate corresponding JSON object, which can be used as AJAX request parameters.@end_Ix
-        @Ix{"Item"}With this framework, programmers can define controls, which enhance modularity and reusability of web pages.@end_Ix
-        @Ix{"Item"}This framework supports internationalization (i18n) and localization (l10n).@end_Ix
-    @end_Ix
+	<template name="Entry.main"><![CDATA[
+		@Ix{"Paragraph"}
+			JSRL (JavaScript Render Language) is an AJAX framework,
+			which provides the following functionality:
+		@end_Ix
+		
+		@Ix{"Enumerate"}
+				@Ix{"Item"}With its help, programmers only need to insert a few tags among HTML code to format and render JSON data retrieving dynamically by AJAX.@end_Ix
+				@Ix{"Item"}This framework can extract data from input controls and generate corresponding JSON object, which can be used as AJAX request parameters.@end_Ix
+				@Ix{"Item"}With this framework, programmers can define controls, which enhance modularity and reusability of web pages.@end_Ix
+				@Ix{"Item"}This framework supports internationalization (i18n) and localization (l10n).@end_Ix
+		@end_Ix
 
-    @Ix{"Paragraph"}
-      This framework is running on the client side entirely, but many of its abilities are only provided by server-side frameworks formerly.
-      Compared to these server-side frameworks, this framework reduces burdern of server, saves the bandwidth, avoids unnecessary HTTP requests and improve the response speed.
-    @end_Ix
+		@Ix{"Paragraph"}
+			This framework is running on the client side entirely, but many of its abilities are only provided by server-side frameworks formerly.
+			Compared to these server-side frameworks, this framework reduces burdern of server, saves the bandwidth, avoids unnecessary HTTP requests and improve the response speed.
+		@end_Ix
 
-    @Ix{"Paragraph"}
-      This documentation is the manual of JSRL, with JSRL tutorial and reference manual.
-      Beginners can learn JSRL by the tutorial, and senior users can look up JSRL API functions, tags and other detailed information.
-      Click links in the menu on left to select interesting topics.
-    @end_Ix
+		@Ix{"Paragraph"}
+			This documentation is the manual of JSRL, with JSRL tutorial and reference manual.
+			Beginners can learn JSRL by the tutorial, and senior users can look up JSRL API functions, tags and other detailed information.
+			Click links in the menu on left to select interesting topics.
+		@end_Ix
 
-    @Ix{"Paragraph"}
-      This manual itself is also organized by JSRL.
-    @end_Ix
-  ]]></template>
+		@Ix{"Paragraph"}
+			This manual itself is also organized by JSRL.
+		@end_Ix
+	]]></template>
 </jsrllib>
