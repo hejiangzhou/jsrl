@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <title>JSRL hello world</title>
+    <script type="text/javascript" src="../../out/debug/jsutils.js"></script>
+    <script type="text/javascript" src="../../out/debug/jsrl.js"></script>
+  </head>
+  <body onload="Jsrl.render('hello', [ 3, 12 ])">
+    <div id="hello"><!--
+      <table>
+      @for{$i = $0, $i < $1, $i++}
+        <tr>
+          <td>@{$i}</td>
+          <td>@{$i * $i}</td>
+        </tr>
+      @end_for
+      </table>
+    --></div>
+  </body>
+</html>

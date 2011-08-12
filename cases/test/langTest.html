@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=GB18030">
+<title>Test for controls</title>
+    <script type="text/javascript" src="jsutils.js"></script>
+    <script type="text/javascript" src="jsrl.js"></script>
+    <script type="text/javascript" src="jsrlTestLib.js"></script>
+    <script type="text/javascript">
+        var langs = { "en_US": "American English", "en_GB": "British English", "zh_CN": "大陆简体", "zh_TW": "台灣正體" };
+        var lang = "zh_CN";
+		
+        Q.onready(function () {
+          var hash = location.hash;
+          var m = /lang=([\w]+)\b/.exec(hash);
+          if (m) lang = m[1]
+
+          Jsrl.setLanguage(lang);
+		  Jsrl.registerLangTransformer("l", Q.leadCapital);
+    	  Jsrl.loadLibrary("jsrlTestLib.xml");
+    	  Jsrl.loadLibrary("jsrlLangTestLib-{lang}.xml");
+          Jsrl.loadAll();
+        });
+
+        function changeLang(lang) {
+          location.hash = "lang=" + lang;
+          location.reload();
+        }
+    </script>
+</head>
+<body>
+	<div id="area1"><!--
+            Select language: @select{, lang, onchange:changeLang(#.get())}
+              @foreach{l, langs}
+                @option{$l, langs[$l]}
+              @end_foreach
+            @end_select
+            <br/>
+            @I{"LangHello", "Alice"}<br/>
+            @D{"Demo.LangTest.language"}<br/>
+            @D{"Demo.LangTest.hello", "Bob"}<br/>
+            @D{"Demo.LangTest.a_meets_b", "Alice", "Bob"}<br/>
+            @D{"Demo.LangTest.date", { year: 1985, month: 4, day: 5 }}<br/>
+            @D{"Demo.LangTest.select_color"}: 
+            @select{, "red"}
+                @option{"red", Jsrl.D("l:Demo.LangTest.red")}
+                @option{"green", Jsrl.D("l:Demo.LangTest.green")}
+                @option{"blue", Jsrl.D("l:Demo.LangTest.blue")}
+            @end_select
+            <br/>
+	 --></div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=GB18030">
+<title>Test for controls</title>
+    <script type="text/javascript" src="jsutils.js"></script>
+    <script type="text/javascript" src="jsrl.js"></script>
+    <script type="text/javascript" src="jsrlTestLib.js"></script>
+    <script type="text/javascript">
+    	var times = 0;
+    	Jsrl.loadLibrary("jsrlTestLib.xml");
+    	function trap() { }
+    </script>
+</head>
+<body onload="Jsrl.loadAll();">
+	<div id="area1"><!--
+	Render次数：@{times} <br/>
+	@text{out, "不在form中的文本框"} <br/>
+	@form{x, onsubmit: {
+			#msg.node.innerHTML="已提交";
+			trap();
+			alert("提交内容: " + JSON.stringify(#.eval()));
+		}}
+		@set{primes, [2, 3, 5, 7, 11, 13, 17, 19]}
+		复选框：
+		@radio_group{radio0, 5, onchange: alert("选项已改为 " + #.get()) } @# 这里5是初值
+			@foreach{pm, $primes}
+				@radio{$pm, id="rad" + $pm}@{$pm} 
+			@end_foreach
+		@end_radio_group
+		@load{#radio0.set(3)}
+		<br/>
+		列表框：
+		@select{select0, 11, style="color:red;", onchange: alert("列表框的值已改为" + #.get())}
+			@option{null, "不选"} 
+			@foreach{pm, $primes}
+				@optionx{$pm, style="background-color:#afafaf;"} 素数<b>@{$pm}</b> @end_optionx
+			@end_foreach
+		@end_select
+		<br/>
+		@checkbox{checkbox0, false, onchange: alert("复选框的值被改为了" + #.get()) }这是一个初值为false的checkbox 
+		@checkbox{checkbox1, true, onchange: alert("复选框的值被改为了" + #.get()) }这是一个初值为true的checkbox 
+		<br/>
+		Password: @password{pwd, ""}<br/> 
+		@for {$i = 0, $i < 3, $i++}
+			文本框@{$i}: @text{obj[$i].str, "文本" + $i + "初值", size=30, onchange: alert("文本框" + $i + "的值已改为 " + #.get()) }<br/>
+			多行文本框@{$i}: @textarea{obj[$i].lines, "多行文本\n" + $i + "初值", rows=4, cols=60}<br/>
+		@end_for
+		<br/>
+		
+		@# 一组关于hidden属性的示例
+		@for {$i = 0, $i < 3, $i++}
+			@# 第一个和最后一个checkbox本身是隐藏的，不显示在结果中
+			@checkbox{hidTest[$i].cb, false, hidden=($i != 1), onchange: #hidTest[$i].tb.hidden = !#.get()} 显示右边的文本框
+			@# 这个文本框是否隐藏，由各自的checkbox控制
+			@text{hidTest[$i].tb, "用于隐藏测试的文本框" + $i, hidden=true}
+			<br/>
+		@end_for 
+		
+		@# 下面是一个子form的示例，只有所有子form的submit返回true，父form的submit才能被执行
+		@form{verify, onsubmit: {
+			if (#txt.get() == "8234")
+				return true;
+			else {
+				alert("请正确输入验证码！");
+				return false;
+			}
+		}}
+			验证码(8234)：@text{txt} 
+		@end_form
+		<br/>
+		
+		@# 下面是子控件示例，空间在jsrlTestLib.xml中
+		子控件1：@C{mul[0], "multiple_ctrl"} <br/>
+		子控件2：@C{mul[1], "multiple_ctrl", x=4, y=6, onchange: alert("乘法控件的值变为了" + #.eval() + "(" + args[0] + "*" + args[1] + ")")} <br/>
+		
+		@C{, "autoInc", initVal="test"}
+		
+		@Cx{primeList, "multi_select", sel="cb", val="pm"}
+			@for {$i = 0, $i < $primes.length, $i++}
+				@checkbox{cb[$i], false}@{$primes[$i]} 
+				@hidden{pm[$i], $primes[$i]}
+			@end_for
+		@end_Cx
+		<br/>
+		
+		@submit{"submit"}
+		@button{"show", onclick: { document.getElementById("showArea").value = JSON.stringify(form.eval()); }}
+		</p>
+		@cmd{"show", { document.getElementById("showArea").value = JSON.stringify(form.eval()); }, style="font-size:16pt;"} 
+		@cmdx{ form.submit() }
+			<b>submit</b>!!!
+		@end_cmdx 
+		<div @id{msg} style="color:red;"></div>
+		@button{"render", id="renderButton", onclick: {++times;Jsrl.render("area1");}}
+		@hidden{hiddens[0], "This is a hidden field"}
+		@hidden{hiddens[1], 23}
+	@end_form
+	<br/>
+	 --></div>
+	<br/>
+	<br/>
+ 	<textarea id="showArea" rows="10" cols="60" readonly="readonly"></textarea>
+</body>
+</html>

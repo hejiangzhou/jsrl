@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib>
+	<template name="headline"><![CDATA[
+		<strong>For JSRL test</strong>
+	]]></template>
+
+	<!-- conditional url -->
+	<template name="cond_url"><![CDATA[
+		@if {$2 == $3}
+			@{$1}
+		@else
+			<a href="@{$0}">@{$1}</a>
+		@end_if
+	]]></template>
+	
+</jsrllib>

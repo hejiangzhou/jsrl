@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib>
+
+	<require path="jsrlTestLib2.xml"/>
+	
+	<!-- namecard -->
+	<template name="namecard"><![CDATA[
+       <table border=1>
+         <tr><td colspan="2"><center>Namecard</center></td></tr>
+         <tr><td>Name</td><td>@{$0.name}</td></tr>
+         <tr><td>Sex</td><td>@if{$0.sex} Male @else Female @end_if</td></tr>
+         <tr><td>Age</td><td>@{$0.age}</td></tr>
+       </table>
+	]]></template>
+	
+	<!-- namecard group -->
+	<template name="namecard_group"><![CDATA[
+	   @I{"headline"}
+       <table>
+	       <tr>
+	       @foreach{x, $0}
+	       <td>
+	         @I{"namecard", $x}
+	       </td>
+	       @end_foreach
+	       </tr>
+       </table>
+	]]></template>
+	
+	<!-- unloaded data -->
+	<template name="unloaded_data"><![CDATA[
+	   @if {$0 == undefined}
+	   		<font color="red">数据正在载入中……</font>
+	   		@exit
+	   @end_if 
+	]]></template>
+	
+	<!--  -->
+	<template name="navigator_1"><![CDATA[
+		@I{"cond_url", "a.html", "页面a", $0, 0} | 
+		@I{"cond_url", "b.html", "页面b", $0, 1} | 
+		@I{"cond_url", "c.html", "页面c", $0, 2} | 
+		@I{"cond_url", "d.html", "页面d", $0, 3} 
+	]]></template>
+	
+	<!-- 这是一个乘法子控件，显示两个文本框，用户在其中输入两个数值，最后会生成它们的乘积
+		该控件有两个属性x和y，表示两文本框的初值
+		有一个事件onchange，当控件值改变时触发
+	-->
+	<template name="multiple_ctrl"><![CDATA[
+		@# form后的“#”表示以当前控件的名字作为form的名字，“#”后也可以跟随其它内容，诸如“#[0]”、“#.a”
+		@ns{#,
+			value: return parseInt(ctrls.x.get()) * parseInt(ctrls.y.get())
+		}
+			x:@text{x, $x ? $x : 0, size:5, onchange: { if ($onchange) $onchange(form, parseInt(self.get()), parseInt(ctrls.y.get())); }}
+			y:@text{y, $y ? $y : 0, size:5, onchange: { if ($onchange) $onchange(form, parseInt(ctrls.x.get()), parseInt(self.get())); }}
+		@end_ns
+	]]></template>
+
+	<template name="multi_select"><![CDATA[
+		@ns{#,
+			value: return top.MultiSelect._getValue(ctrls[$sel ? $sel : "sel"], ctrls[$val ? $val : "val"])
+		}
+			@block{0}
+		@end_ns  
+	]]></template>
+
+	<template name="card_frame"><![CDATA[
+		<div style="float:left;height:80pt;padding:10pt;">
+			<div style="position:relative;float:left;width:20pt;height:100%;background-color:#a0a0ff;vertical-align:middle;">
+				<div style="float:left;position:absolute;top:30pt;text-align:center;width:100%;height:100%;">@block{0}</div>
+			</div>
+			<div style="float:right;width:150pt;height:100%;background-color:#ffa0a0;">
+				<div style="float:left;width:100%;background-color:#a0ffa0;text-align:center;">
+					<b><i>@block{1}</i></b>
+				</div>
+				@block{2}
+			</div>
+		</div>
+	]]></template>
+	
+	<template name="autoInc"><![CDATA[
+		@ns{#}
+			@set {num, $num ? $num : 1}
+			@for {$i = 0, $i < $num, $i++}
+				@if {$i == 2}
+					@{a.b.c}
+				@end_if
+				@{$0 ? $0 : ""} @text{val[$i], $initVal} <br/>
+			@end_for
+			@button{"add", onclick: form.render({num: $num + 1})} 
+			@button{"reset", onclick: form.rerender()}
+			<br/>
+			@text{pf, "", hidden:true, size:5} @button{"set prefix", onclick: form.render({0:#pf.get()})} 
+			@text{df, "", hidden:true} @button{"set default value", onclick: form.render({initVal:#df.get()})} 
+			<br/>
+		@end_ns
+	]]></template>
+</jsrllib>

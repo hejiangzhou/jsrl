@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="zh_TW">
+	<template name="LangHello"><![CDATA[
+            你好，@{$0}！
+	]]></template>
+	<dict key="Demo.LangTest"><![CDATA[
+            {
+              language: "語言",
+              hello: "{0}你好",
+              date: "{0.year}年{0.month}月{0.day}日",
+              a_meets_b: "{0}遇見了{1}",
+              select_color: "選擇顏色",
+              red: "紅色",
+              green: "綠色",
+              blue: "藍色"
+            }
+	]]></dict>
+</jsrllib>
