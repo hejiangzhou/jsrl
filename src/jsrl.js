@@ -802,7 +802,7 @@ var Jsrl = (function() {
 	};
 	
 	function EvalTag(args, scanner) {
-		ASSERT(args.length == 1, "SelfInsertTag: need only 1 argument");
+		ASSERT(args.length == 1, "@{}: need only 1 argument");
 		this.evalFunc = evaluateFunc(args[0]);
 	}
 	EvalTag.prototype = {
@@ -817,7 +817,7 @@ var Jsrl = (function() {
 	};
 
 	function ExecTag(args, scanner) {
-		ASSERT(args.length == 1, "ExecTag: need only 1 argument");
+		ASSERT(args.length == 1, "@!: need only 1 argument");
 		this.exec = executeFunc(args[0]);
 	}
 

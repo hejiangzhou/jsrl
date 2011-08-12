@@ -81,6 +81,11 @@
 			@block{1}
 		</div>
 	]]></template>
+	<template name="CodeSeg"><![CDATA[
+		<div class="code">
+			@I{"CodeBlock", $0, $1}
+		</div>
+	]]></template>
 	<template name="CodeBlock"><![CDATA[
 		@set{n, 0}
 		@!{
@@ -93,7 +98,10 @@
 		<div class="codeBlock">
 		@for{$i = 0, $i < $lines.length, $i++}
 			<div class="codeLine">
-				<div class="codeLineNumber">@{Article.lineNumber($i + 1, $width)}</div><div class="codeLineCode">@{$lines[$i]}</div>
+				@if{$lines.length > 1}
+					<div class="codeLineNumber">@{Article.lineNumber($i + 1, $width)}</div>
+				@end_if
+				<div class="codeLineCode">@{$lines[$i]}</div>
 			</div>
 		@E
 		</div>
@@ -125,5 +133,11 @@
 	]]></template>
 	<template name="DefVar"><![CDATA[
 		<div class="defvar">@{$0}</div>
+	]]></template>
+	<template name="Notice"><![CDATA[
+		<div class="infoBlock">
+			<span class="infoBlockTitle">@D{"l:Words.notice"}</span>
+			@block{0}
+		</div>
 	]]></template>
 </jsrllib>

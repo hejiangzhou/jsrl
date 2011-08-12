@@ -35,3 +35,5 @@ h3 { font-size:20px; margin:0; padding:10px 12px 2px 12px; border-bottom:1px sol
 .defsym { display:inline; font-family:Consolas, Courier New; }
 .defvar { display:inline; font-style:italic; }
 
+.infoBlock { margin:5px 40px; padding:10px; background-color:#afcfaf; }
+.infoBlockTitle { font-weight:bold; margin-right:10px; }

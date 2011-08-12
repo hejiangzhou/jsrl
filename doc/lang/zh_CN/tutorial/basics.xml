@@ -7,8 +7,8 @@
 				@Ix{"Paragraph"}
 					@I{"EntryLink", "tutorial.overview"}一节的例子中已经给出了一些最简单的JSRL模板。
 					从中可以看出，JSRL模板中，动态的内容都是以@I{"Verb", "@"}开头的，这些表示的是JSRL@I{"Concept", "标签"}。
-					JSRL标签有很多种，用名字来区分，例如@I{"Verb", "@for"}和@I{"Verb", "@E"}就属于两种不同的标签。
-					JSRL模板中对标签的一处引用称为该标签的一个@I{"Concept", "实例"}。
+					JSRL标签有很多种，用名字来区分，例如@I{"Verb", "@for"}和@I{"Verb", "@end_for"}就属于两种不同的标签。
+					JSRL模板中对标签的一处使用称为该标签的一个@I{"Concept", "实例"}。
 					 
 					JSRL标签实例的一般形式为：
 
@@ -39,7 +39,7 @@
 				@Ix{"Paragraph"}
 					@I{"Concept", "表达式"}是最常见的参数类型。
 						参数中的表达式的语法与Javascript表达式的语法基本一样，可以使用任何Javascript运算符、引用任何全局变量（在网页中的全局变量即window对象的成员）。
-						与普通的Javascript表达式的唯一区别在于，在作为JSRL标签参数的表达式中，可以引用@I{"Concept", "模板作用域"}中的变量。
+						与普通的Javascript表达式的一个显著区别在于，在作为JSRL标签参数的表达式中，可以引用模板作用域中的变量。
 				@E
 
 				@Ix{"Paragraph"} 
@@ -121,17 +121,48 @@
 				@E
 
 				@Ix{"Paragraph"}
-					
-
-
+					当一个左值被设置时，如果构成它的基本对象还不存在，则会被自动创建。
+					例如，对于下面这样一个标签实例：
+					@I{"CodeSeg", "jsrl", "@set{building.room[$i].area, 20}"}
+					在呈现到该标签时，若@I{"Verb", "$building"}尚不存在，则JSRL呈现引擎会自动创建一个空对象，赋给@I{"Verb", "$building"}。
+					随后，引擎会检查@I{"Verb", "$building.room"}是否存在，若不存在，则引擎会自动创建一个空数组，赋给@I{"Verb", "$building.room"}。
+					最后，再将@I{"Verb", "20"}赋给@I{"Verb", "building.room[$i].area"}。
+					这种机制在使用左值为JSRL控件命名时，带来了很大的便利，这在@I{"EntryLink", "tutorial.ctrls"}一章中会详细讨论。
 				@E
 
 			@E
 
 		@E
 
-		@Ix{"Section", "JSRL的基本标签"}
+		@Ix{"Section", "求值标签"}
+
+			@Ix{"Paragraph"}
+				最基本的求值标签是@I{"EntryLink", "ref.tag._expr"}，它接受一个JSRL表达式作为参数，呈现时会将表达式的值输出。
+				值得一提的是，该标签会自动将HTML的特殊控制字符进行转义，包括@I{"Verb", "<"}、@I{"Verb", ">"}、@I{"Verb", "\""}和@I{"Verb", "&"}，例如@I{"Verb", "<"}会被转义为@I{"Verb", "&lt;"}。
+				它还会将部分连续空格转义为@I{"Verb", "&nbsp;"}，使得文本中出现的连续空格也能够被原样呈现。
+				但它不会对换行符（@I{"Verb", "'\\n'"}）进行任何特殊处理，如此处理的原因是在网页设计时，如果在不应有换行的地方出现了换行，会使原先规划为单行的文本变为多行，破坏网页格式，因此对于相当多的动态文本，程序员需要避免其被折为多行。
+			@E
+
+			@Ix{"Paragraph"}
+				毕竟在有些场合，需要显示一段多行文本，这需要借助另一个标签@I{"EntryLink", "ref.tag._htmlize"}，该标签与@I{"EntryLink", "ref.tag._expr"}唯一区别在于，它会将换行符转化为@I{"Verb", "<br/>"}。
+			@E
+
+			@Ix{"Paragraph"}
+				另一个类似的标签是@I{"EntryLink", "ref.tag.html"}，该标签与前两者的区别是，它不会做任何转义工作，而是直接将表达式求值后作为HTML呈现出来。
+			@E
+
+			@Ix{"Notice"}
+				使用@I{"EntryLink", "ref.tag.html"}存在一定的风险，特别是其输入源自最终用户时，一定要避免不良用户通过这个途径破坏页面的结构甚至在其他用户的客户端执行恶意脚本，因此在服务器端必须对可能通过@I{"EntryLink", "ref.tag.html"}显示的文本进行严格的安全检查。
+			@E
+		@E
+
+		@Ix{"Section", "执行标签"}
 
 		@E
+
+		@Ix{"Section", "流程控制标签"}
+
+		@E
+		
 	]]></template>
 </jsrllib>
