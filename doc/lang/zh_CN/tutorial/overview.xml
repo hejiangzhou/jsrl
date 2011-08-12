@@ -89,7 +89,6 @@
 				可以看出，JSRL模板的语法结构与JSP非常相似。
 				它们的共同特点是可以将动态的内容嵌入在静态的HTML中，从而创建一个直观清晰的视图层。
 				JSRL中，动态内容皆以@I{"Verb", "@"}开头的标签来表示，呈现过程中用到的变量以@I{"Verb", "$"}开头。
-				更详细的语法规定将在@I{"EntryLink", "tutorial.basics"}一节介绍。
 			@E
 
 			@Ix{"Paragraph"}
@@ -117,21 +116,41 @@
 				传入的参数可以是任意复杂的数据类型，从Ajax请求返回的JSON数据，常常在呈现时当作参数传递给JSRL模板。
 				将这样一段模板在HTML页面中呈现出来的最便捷的方式是，将其写在HTML页面的注释中，并且调用JSRL的库函数来完成呈现。 
 			@E
-		@E
 
-		@Ix{"CodeFile", "code:hw_jsrl_html", "helloworld.html", "html"}
-			使用了JSRL的完整的HTML代码
-		@E
+			@Ix{"CodeFile", "code:hw_jsrl_html", "helloworld.html", "html"}
+				使用了JSRL的完整的HTML代码
+			@E
 
-		@Ix{"Paragraph"}
-			其中，jsutils.js和jsrl.js为使用JSRL所需要载入的两个基本库。
-			JSRL模板写在注释中，使用@I{"Verb", "Jsrl.render()"}函数来呈现，3、12两个参数通过该函数传入。
-			执行该函数后，ID为@I{"Verb", "hello"}的@I{"Verb", "<div>"}中的JSRL模板会被JSRL库解析并且以指定的参数呈现，呈现后的HTML会被放到该@I{"Verb", "<div>"}下。
+			@Ix{"Paragraph"}
+				其中，jsutils.js和jsrl.js为使用JSRL所需要载入的两个基本库。
+				JSRL模板写在注释中，使用@I{"Verb", "Jsrl.render()"}函数来呈现，3、12两个参数通过该函数传入。
+				执行该函数后，ID为@I{"Verb", "hello"}的@I{"Verb", "<div>"}中的JSRL模板会被JSRL库解析并且以指定的参数呈现，呈现后的HTML会被放到该@I{"Verb", "<div>"}下。
+			@E
 		@E
+		
+		@Ix{"Section", "JSRL模板的呈现过程和模板作用域"}
+			
+			@Ix{"Figure", "fig:render_process", @"figures/render-process.jpg"}
+				JSRL模板的呈现过程
+			@E
+			
+			@Ix{"Paragraph"}
+				@I{"Ref", "fig:render_process"}用一个更简单的例子图示了JSRL模板的呈现过程。
+				JSRL引擎可以将指定的模板在给定的输入参数下进行呈现，呈现后生成HTML，@I{"Verb", "Jsrl.render()"}函数可以通过DOM将其放到页面中。
+			@end_Ix
+			
+			@Ix{"Paragraph"}
+				JSRL模板的呈现过程，类似于一个命令式语言程序的执行过程，是遵循从前向后的顺序。
+				JSRL支持分支、循环等各种丰富的控制标签，可以控制呈现的流程。
+				对于常见的命令式语言的函数（方法）而言，往往每个函数（方法）确立了一个作用域，该作用域中的局部变量在函数（方法）执行时可以被读写，函数（方法）返回后即不再存在。
+				类似地，在一个JSRL模板呈现的过程中，会形成一个@I{"Concept", "模板作用域"}，前面例子中以@I{"Verb", "$"}开头的变量，都是模板作用域中的变量。
+			@end_Ix
 
-		@Ix{"Paragraph"}
-			JSRL模板不仅可以放在HTML文件的注释中，还可以放在XML文件中，并被不同的HTML文件引用。
-			在页面中使用JSRL模板的各种方法，将在@I{"EntryLink", "tutorial.api"}一节详细介绍。
-		@E
+			@Ix{"Paragraph"}
+				JSRL模板不仅可以放在HTML文件的注释中，还可以放在XML文件中，并被不同的HTML文件引用。
+				在页面中使用JSRL模板的各种方法，将在@I{"EntryLink", "tutorial.api"}一节详细介绍。
+			@E
+
+		@end_Ix
 	]]></template>
 </jsrllib>
