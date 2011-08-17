@@ -970,6 +970,7 @@ var Jsrl = (function() {
 		evaluateData : function (data, dataList, env) {
 			setupDataObj(data, dataList);
 			data.ROOT = env.container;
+			data.TOP = env.form;
 			data.WIND = env.wind;
 //#ifdef DEBUG
 			Trace().pushTmp(this.info);
