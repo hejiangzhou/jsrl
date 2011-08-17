@@ -422,6 +422,11 @@ var node = (typeof(id) == "string" ? $(id) : id);
 node.style.display = (enable ? "block" : "none");
 return node;
 };
+Q.$V = function (id, visible) {
+var node = (typeof(id) == "string" ? $(id) : id);
+node.style.visibility = (visible ? "visible" : "hidden");
+return node;
+};
 Q.$CE = function (eleName) {
 return document.createElement(eleName);
 };
@@ -726,7 +731,7 @@ window[name] = Q[name];
 }
 };
 Q.importShortcuts = function () {
-Q.importName("$", "$N", "$P", "$S", "$SPX", "$GS", "$T", "$CE", "$A");
+Q.importName("$", "$N", "$P", "$S", "$SPX", "$GS", "$T", "$V", "$CE", "$A");
 };
 return Q;
 })();

@@ -544,6 +544,7 @@ Evaluator.prototype = {
 evaluateData : function (data, dataList, env) {
 setupDataObj(data, dataList);
 data.ROOT = env.container;
+data.TOP = env.form;
 data.WIND = env.wind;
 this.block.generate(data, env);
 }
