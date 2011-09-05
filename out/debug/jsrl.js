@@ -673,8 +673,8 @@ generate : function (data, env) {
 var result = this.evalFunc(data);
 if (result == null)
 result = data.undefined_text;
-else if (typeof(result) == "string")
-result = Q.purify(result);
+else
+result = Q.escape(result);
 env.push(result);
 }
 };
@@ -1313,7 +1313,6 @@ this.value = evaluateFunc(args[0]);
 HtmlizeTag.prototype = {
 generate : function (data, env) {
 var result = this.value(data);
-ASSERT(result == null || typeof(result) == "string", "@_: the argument should be string");
 if (result == null) result = env.undefined_text;
 env.push(Q.htmlize(result));
 }
@@ -1326,7 +1325,6 @@ this.value = evaluateFunc(args[0]);
 HtmlTag.prototype = {
 generate : function (data, env) {
 var result = this.value(data);
-ASSERT(result == null || typeof(result) == "string", "@html: the argument should be string");
 if (result == null) result = env.undefined_text;
 env.push(result);
 }
@@ -1606,7 +1604,7 @@ var id = getId(this, data, env);
 env.push(tagById("a href=\"#\"", id));
 var cmdCtrl = new CmdCtrl(id, env);
 generateAttributes(this, data, cmdCtrl, env);
-env.push(">" + Q.purify(this.text(data)) + "</a>");
+env.push(">" + Q.escape(this.text(data)) + "</a>");
 env.addRenderHook(cmdCtrl);
 }
 };
@@ -2025,7 +2023,7 @@ ASSERT(select != null, "@option: must reside in select");
 select.values.push(this.value(data));
 env.push("<option ");
 generateAttributes(this, data, null, env);
-env.push(">" + Q.purify(this.text(data)) + "</option>");
+env.push(">" + Q.escape(this.text(data)) + "</option>");
 }
 };
 registerTag("option", OptionTag);
@@ -2449,7 +2447,7 @@ ASSERT(typeof(key) == "string", "@D: the first argument should be a string");
 var rargs = new Array(this.args.length);
 for (var i = 0; i < rargs.length; i++)
 rargs[i] = this.args[i](data);
-env.push(Q.purify(getDictText(key, rargs)));
+env.push(Q.escape(getDictText(key, rargs)));
 }
 };
 registerTag("D", DTag);

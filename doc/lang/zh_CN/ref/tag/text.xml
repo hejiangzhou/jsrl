@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsrllib lang="zh_CN">
+	<template name="Entry.ref.tag.text"><![CDATA[
+		@Ix{"Paragraph"}
+			对不起，本条目尚未编写。
+		@end_Ix
+	]]></template>
+</jsrllib>

@@ -29,7 +29,7 @@ h3 { font-size:20px; margin:0; padding:10px 12px 2px 12px; border-bottom:1px sol
 .codeLineCode { display:inline; }
 .codeFilename { display:inline; font-weight:bold; font-family:Arial; font-style:italic; }
 
-.concept { display:inline; font-weight:bold; color:#202080; }
+.concept { display:inline; font-weight:bold; color:#004040; }
 .verb { display:inline; font-family:Consolas, Courier New; padding:0 5px 0 5px; color:#1f1f1f; font-weight:bold; }
 .def { border:1px solid black; margin:10px 20px 10px 20px; padding:5px 10px 5px 10px;  }
 .defsym { display:inline; font-family:Consolas, Courier New; }
@@ -37,3 +37,7 @@ h3 { font-size:20px; margin:0; padding:10px 12px 2px 12px; border-bottom:1px sol
 
 .infoBlock { margin:5px 40px; padding:10px; background-color:#afcfaf; }
 .infoBlockTitle { font-weight:bold; margin-right:10px; }
+
+a { text-decoration:none; }
+a:hover { text-decoration:underline; color:red; }
+a.entryLink { font-weight:bold; }

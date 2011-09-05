@@ -12,7 +12,7 @@
   <body>
     <div id="root" class="root"><!--
       <div class="content">
-        <div class="title"><h1>@D{"Titles." + $0}</h1></div>
+        <div class="title"><h1>@{getEntry($0).getTitle()}</h1></div>
         <div class="entry">@I{"Entry." + $0}</div>
       </div>
       <div class="menu">@I{"Menu", $0}</div>

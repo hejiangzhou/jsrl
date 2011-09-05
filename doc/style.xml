@@ -101,7 +101,7 @@
 				@if{$lines.length > 1}
 					<div class="codeLineNumber">@{Article.lineNumber($i + 1, $width)}</div>
 				@end_if
-				<div class="codeLineCode">@{$lines[$i]}</div>
+				<div class="codeLineCode">@_{$lines[$i]}</div>
 			</div>
 		@E
 		</div>
@@ -137,6 +137,12 @@
 	<template name="Notice"><![CDATA[
 		<div class="infoBlock">
 			<span class="infoBlockTitle">@D{"l:Words.notice"}</span>
+			@block{0}
+		</div>
+	]]></template>
+	<template name="Comment"><![CDATA[
+		<div class="infoBlock">
+			<span class="infoBlockTitle">@D{"l:Words.comment"}</span>
 			@block{0}
 		</div>
 	]]></template>
