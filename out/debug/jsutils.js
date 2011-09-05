@@ -376,7 +376,7 @@ str = str.replace(/\n/g, "<br />");
 return str;
 };
 Q.trim = function (str) {
-return str.replace(/^\s+(\S.*)$/, "$1").replace(/(.*\S)\s+$/, "$1");
+return str.replace(/^\s*(\S*)\s*$/, "$1");
 };
 Q.leadCapital = function (str) {
 return str.charAt(0).toUpperCase() + str.substr(1);

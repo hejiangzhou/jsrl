@@ -3,7 +3,8 @@
 	<dict key="Words"><![CDATA[
 		{
 			language: "语言",
-			notice: "注意"
+			notice: "注意",
+			comment: "说明"
 		}
 	]]></dict>
 </jsrllib>

@@ -296,7 +296,7 @@ var Q = (function () {
 	};
 	
 	Q.trim = function (str) {
-		return str.replace(/^\s+(\S.*)$/, "$1").replace(/(.*\S)\s+$/, "$1");	
+		return str.replace(/^\s*(\S*)\s*$/, "$1");
 	};
 
 	Q.leadCapital = function (str) {
