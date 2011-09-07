@@ -21,7 +21,7 @@ var nullConstFunc = ConstFunc(null);
 var emptyStrFunc = ConstFunc("");
 var nullObj = {};
 function setupDataObj(data, dataList) {
-data.__args = [];
+if (!data.__args) data.__args = [];
 if (!dataList) return;
 for (var i in dataList)
 if (intReg.test(i))
@@ -123,7 +123,7 @@ var value = scanner.value;
 while (!scanner.end() && whitespace.test(value.charAt(scanner.pos)))
 scanner.pos++;
 }
-function nextIdentifier(scanner) {
+function tryNextIdentifier(scanner) {
 var pos0 = scanner.pos;
 var value = scanner.value;
 if (pos0 < value.length && identBeginner.test(value.charAt(pos0))) {
@@ -132,7 +132,10 @@ while (pos0 < value.length && identChar.test(value.charAt(scanner.pos)))
 scanner.pos++;
 return value.substring(pos0, scanner.pos);
 }
-;
+return null;
+}
+function nextIdentifier(scanner) {
+return tryNextIdentifier(scanner);
 }
 function nextNumber(scanner) {
 var pos0 = scanner.pos;
@@ -317,16 +320,16 @@ return evalFunc("function (__data) { " + arg + "; }");
 function parseAttribute(arg) {
 var scanner = new Scanner(arg);
 skipBlank(scanner);
-var name = nextIdentifier(scanner);
-var value = null, sep;
+var name = tryNextIdentifier(scanner);
+if (!name) return null;
 skipBlank(scanner);
-if (!scanner.end()) {
-sep = scanner.current();
-;
+var value = null;
+if (scanner.end()) return null;
+var sep = scanner.current();
+if (sep != '=' && sep != ':') return null;
 scanner.pos++;
 skipBlank(scanner);
 value = scanner.rest();
-}
 return { "name" : name, "func" : sep == ':', "value" : value };
 };
 function Setter(xarg) {
@@ -808,7 +811,8 @@ for (var i = 0; i < nodes.length; i++)
 if ((!nodes[i].id || nodes[i].id.charAt(0) != "!") && getJsrlTemplate(nodes[i]) != null) {
 try {
 renderNode(nodes[i]);
-} catch (e) { }
+} catch (e) {
+}
 }
 }
 function loadAll(callback) {
@@ -1046,16 +1050,22 @@ env.push(result);
 };
 registerTag("html", HtmlTag);
 function parseAttributes(tag, parsers, args, index) {
+var j = index || 0;
+var res = [];
 tag.attributes = [];
-for (var i = index; i < args.length; i++) {
+for (var i = j; i < args.length; i++) {
 var att = parseAttribute(args[i]);
+if (att) {
 var parser = parsers[att.name];
 if (parser == null && att.func)
 parser = new EventAttParser(att.name);
 ;
 ;
 tag.attributes.push(parser.parse(att.value, tag));
+} else
+args[j++] = args[i];
 }
+args.length = j;
 }
 function generateAttributes(tag, data, ctrl, env) {
 var atts = tag.attributes;
@@ -1216,8 +1226,8 @@ return false;
 }
 var imgParserMap = Q.union(generalAttParsers, {"width":new CtrlAttParser("width"), "height":new CtrlAttParser("height")});
 function ImgTag(args, scanner) {
+parseAttributes(this, imgParserMap, args);
 this.url = evaluateFunc(args[0]);
-parseAttributes(this, imgParserMap, args, 1);
 }
 function ImgTagOnRender(id, url, width, height) {
 this.id = id;
@@ -1293,9 +1303,9 @@ ctrl.onclick = getSafeFunc(this.handlers.onclick);
 }
 };
 function CmdTag(args, scanner) {
+parseAttributes(this, focusableAttParsers, args);
 ;
 this.text = evaluateFunc(args[0]);
-parseAttributes(this, focusableAttParsers, args, 2);
 this.attributes.push(cmdClickParser.parse(args[1], this));
 }
 CmdTag.prototype = {
@@ -1310,8 +1320,8 @@ env.addRenderHook(cmdCtrl);
 };
 registerTag("cmd", CmdTag);
 function CmdxTag(args, scanner) {
+parseAttributes(this, generalAttParsers, args);
 ;
-parseAttributes(this, generalAttParsers, args, 1);
 this.attributes.push(cmdClickParser.parse(args[0], this));
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
@@ -1478,12 +1488,13 @@ registerTag(name, Tag);
 }
 registerFormNsTag("form", true);
 registerFormNsTag("ns", false);
-function CtrlBase(args, scanner, extraArg, ctrlClass, parserMap, attIndex) {
+function CtrlBase(args, scanner, extraArg, ctrlClass, parserMap) {
 ;
 this.setter = new Setter(args[0]);
+parseAttributes(this, parserMap, args, 1);
 this.initVal = (isEmptyArg(args[1]) ? null : evaluateFunc(args[1]));
 this.ctrlInst = new ctrlClass(args, scanner, extraArg);
-parseAttributes(this.ctrlInst, parserMap, args, attIndex);
+this.ctrlInst.attributes = this.attributes;
 }
 function CtrlOnRender(ctrl, status) {
 this.ctrl = ctrl;
@@ -1516,11 +1527,10 @@ if (res.initVal == null) res.initVal = this.defaultValue;
 env.addRenderHook(new CtrlOnRender(res, status));
 }
 };
-function registerCtrl(tagName, ctrlClass, extraArg, defaultValue, parserMap, extraArgs) {
+function registerCtrl(tagName, ctrlClass, extraArg, defaultValue, parserMap) {
 if (parserMap == null) parserMap = {};
-if (extraArgs == null) extraArgs = 0;
 var tagClass = function (args, scanner) {
-CtrlBase.call(this, args, scanner, extraArg, ctrlClass, parserMap, extraArgs + 2);
+CtrlBase.call(this, args, scanner, extraArg, ctrlClass, parserMap);
 };
 Q.extend(tagClass, CtrlBase);
 tagClass.prototype.defaultValue = defaultValue;
@@ -1792,11 +1802,11 @@ return ctrl;
 }
 };
 registerCtrl("hidden", HiddenCtrlTag, null, null, hiddenAttribute);
-function getCtrlAttList(args, begId) {
-var events = [], atts = [];
+function setCtrlAttList(tag, args, begId) {
+var events = [], atts = [], argList = [];
 for (var i = begId; i < args.length; i++) {
 var att = parseAttribute(args[i]);
-var parser;
+if (att) {
 if (att.func) {
 var event = (new EventAttParser(att.name)).parse(att.value);
 events.push({"name":att.name, "e":event})
@@ -1804,14 +1814,16 @@ events.push({"name":att.name, "e":event})
 var func = evaluateFunc(att.value);
 atts.push({"name":att.name, "func":func});
 }
+} else
+argList.push(evaluateFunc(args[i]));
 }
-return [ events, atts ];
+tag.events = events;
+tag.atts = atts;
+tag.args = argList;
 }
-function appendCtrlAtts(newData, data, env, obj) {
-var events = obj[0];
+function appendCtrlAtts(newData, data, env, events, atts) {
 for (var i = 0; i < events.length; i++)
 newData[events[i].name] = events[i].e.getCtrlEventFunc(data, env);
-var atts = obj[1];
 for (var i = 0; i < atts.length; i++)
 newData[atts[i].name] = atts[i].func(data);
 }
@@ -1854,12 +1866,18 @@ env.addRenderHook({ onrender: h });
 }
 };
 registerTag("L", LoadTag);
-function COrCxTag(hasBlk) {
+function COrCxTag(tagName, hasBlk, hasId) {
+var sepTagName, endTagName;
+var argOfst = (hasId ? 1 : 0);
+if (hasBlk) {
+sepTagName = "sep_" + tagName;
+endTagName = "end_" + tagName;
+}
 var CTag = function (args, scanner) {
 ;
-this.setter = new Setter(args[0]);
-this.tempName = evaluateFunc(args[1]);
-this.attList = getCtrlAttList(args, 2);
+this.setter = new Setter(hasId ? args[0] : null);
+this.tempName = evaluateFunc(args[argOfst]);
+setCtrlAttList(this, args, argOfst + 1);
 if (hasBlk) {
 this.blocks = [];
 var last;
@@ -1868,7 +1886,7 @@ var body = new Block();
 last = body.appendUntilDummy(scanner);
 ;
 this.blocks.push(body);
-} while (last.type != "end_Cx" && last.type != "E");
+} while (last.type != endTagName && last.type != "E");
 }
 };
 CTag.prototype = {
@@ -1876,56 +1894,14 @@ generate : function (data, env) {
 var tempName = this.tempName(data);
 ;
 var evaluator = getTemplate(tempName);
+var arr = new Array(this.args.length);
+for (var i = 0; i < arr.length; i++)
+arr[i] = (this.args[i])(data);
 var setterInst = this.setter.getSetterInstance(data, env);
 var oldInd = env.parCtrlIndexes;
 env.parCtrlIndexes = setterInst;
 var newData = {};
-appendCtrlAtts(newData, data, env, this.attList);
-if (hasBlk) {
-var blks = new Array(this.blocks.length);
-for (var i = 0; i < blks.length; i++)
-blks[i] = this.blocks[i];
-newData.__outerBlocks = blks;
-newData.NUMBLOCKS = blks.length;
-newData.__outerData = data;
-}
-evaluator.evaluateData(newData, [], env);
-env.parCtrlIndexes = oldInd;
-if (env.cContTemp) env.cStop = env.cContTemp = false;
-}
-};
-return CTag;
-}
-registerTag("C", COrCxTag(false));
-registerTag("Cx", COrCxTag(true));
-function IOrIxTag(hasBlk) {
-var ITag = function (args, scanner) {
-;
-this.tempName = evaluateFunc(args[0]);
-this.args = new Array(args.length - 1);
-this.evaluator = null;
-for (var i = 1; i < args.length; i++)
-this.args[i - 1] = evaluateFunc(args[i]);
-if (hasBlk) {
-this.blocks = [];
-var last;
-do {
-var body = new Block();
-last = body.appendUntilDummy(scanner);
-;
-this.blocks.push(body);
-} while (last.type != "end_Ix" && last.type != "E");
-}
-};
-ITag.prototype = {
-generate : function (data, env) {
-var tempName = this.tempName(data);
-;
-var evaluator = getTemplate(tempName);
-var arr = new Array(this.args.length);
-for (var i = 0; i < arr.length; i++)
-arr[i] = (this.args[i])(data);
-var newData = {};
+appendCtrlAtts(newData, data, env, this.events, this.atts);
 if (hasBlk) {
 var blks = new Array(this.blocks.length);
 for (var i = 0; i < blks.length; i++)
@@ -1935,17 +1911,20 @@ newData.NUMBLOCKS = blks.length;
 newData.__outerData = data;
 }
 evaluator.evaluateData(newData, arr, env);
+env.parCtrlIndexes = oldInd;
 if (env.cContTemp) env.cStop = env.cContTemp = false;
 }
 };
-return ITag;
+return CTag;
 }
-registerTag("I", IOrIxTag(false));
-registerTag("Ix", IOrIxTag(true));
+registerTag("C", COrCxTag("C", false, true));
+registerTag("Cx", COrCxTag("Cx", true, true));
+registerTag("I", COrCxTag("I", false, false));
+registerTag("Ix", COrCxTag("Ix", true, false));
 function BlockTag(args, scanner) {
 ;
 this.argId = evaluateFunc(args[0]);
-this.attList = getCtrlAttList(args, 1);
+setCtrlAttList(this, args, 1);
 }
 BlockTag.prototype = {
 generate : function (data, env) {
@@ -1953,7 +1932,7 @@ var argId = this.argId(data);
 ;
 var blk = data.__outerBlocks[argId];
 var newData = data.__outerData;
-appendCtrlAtts(newData, data, env, this.attList);
+appendCtrlAtts(newData, data, env, this.events, this.atts);
 blk.generate(newData, env);
 }
 };

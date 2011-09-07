@@ -41,7 +41,7 @@
 		@checkbox{checkbox0, false, onchange: alert("复选框的值被改为了" + #.get()) }这是一个初值为false的checkbox 
 		@checkbox{checkbox1, true, onchange: alert("复选框的值被改为了" + #.get()) }这是一个初值为true的checkbox 
 		<br/>
-		Password: @password{pwd, ""}<br/> 
+		Password: @password{pwd}<br/> 
 		@for {$i = 0, $i < 3, $i++}
 			文本框@{$i}: @text{obj[$i].str, "文本" + $i + "初值", size=30, onchange: alert("文本框" + $i + "的值已改为 " + #.get()) }<br/>
 			多行文本框@{$i}: @textarea{obj[$i].lines, "多行文本\n" + $i + "初值", rows=4, cols=60}<br/>
@@ -70,7 +70,7 @@
 		@end_form
 		<br/>
 		
-		@# 下面是子控件示例，空间在jsrlTestLib.xml中
+		@# 下面是子控件示例，控件在jsrlTestLib.xml中
 		子控件1：@C{mul[0], "multiple_ctrl"} <br/>
 		子控件2：@C{mul[1], "multiple_ctrl", x=4, y=6, onchange: alert("乘法控件的值变为了" + #.eval() + "(" + args[0] + "*" + args[1] + ")")} <br/>
 		

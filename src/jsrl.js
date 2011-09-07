@@ -299,7 +299,7 @@ var Jsrl = (function() {
 
 	// Put input data list into data object.
 	function setupDataObj(data, dataList) {
-		data.__args = [];
+		if (!data.__args) data.__args = [];
 		if (!dataList) return;
 		for (var i in dataList)
 			if (intReg.test(i))
@@ -427,8 +427,8 @@ var Jsrl = (function() {
 		while (!scanner.end() && whitespace.test(value.charAt(scanner.pos)))
 			scanner.pos++;
 	}
-
-	function nextIdentifier(scanner) {
+	
+	function tryNextIdentifier(scanner) {
 		var pos0 = scanner.pos;
 		var value = scanner.value;
 		if (pos0 < value.length && identBeginner.test(value.charAt(pos0))) {
@@ -437,7 +437,15 @@ var Jsrl = (function() {
 				scanner.pos++;
 			return value.substring(pos0, scanner.pos);
 		}
-		ERROR("Expect an indentifier");
+		return null;
+	}
+
+	function nextIdentifier(scanner) {
+//#ifdef DEBUG
+		return tryNextIdentifier(scanner) || ERROR("Expect an indentifier");
+//#else
+		return tryNextIdentifier(scanner);
+//#endif
 	}
 	
 	function nextNumber(scanner) {
@@ -683,22 +691,19 @@ var Jsrl = (function() {
 	function parseAttribute(arg) {
 		var scanner = new Scanner(arg);
 		skipBlank(scanner);
-		var name = nextIdentifier(scanner);
-		var value = null, sep;
+		var name = tryNextIdentifier(scanner);
+		if (!name) return null;
 		skipBlank(scanner);
-		if (!scanner.end()) {
+		var value = null;
+		if (scanner.end()) return null;
+		var sep = scanner.current();
+		if (sep != '=' && sep != ':') return null;
+		scanner.pos++;
+		skipBlank(scanner);
 //#ifdef DEBUG
-			Trace().setPos(scanner.finalPos());
+		Trace().setPos(scanner.finalPos());
 //#endif
-			sep = scanner.current();
-			ASSERT(sep == '=' || sep == ':', "Attribute name and value should be separated by '=' or ':'");
-			scanner.pos++;
-			skipBlank(scanner);
-//#ifdef DEBUG
-			Trace().setPos(scanner.finalPos());
-//#endif
-			value = scanner.rest();
-		}
+		value = scanner.rest();
 //#ifdef DEBUG
 		return { "name" : name, "func" : sep == ':', "value" : new ArgWithPos(value, scanner.finalPos())};
 //#else
@@ -1077,7 +1082,7 @@ var Jsrl = (function() {
 	var tags = {};
 	var basePath, basePathStr;
 	function registerTag(name, obj) {
-		ASSERT(tags[name] == undefined, "Tag @" + name + " has been already registered");
+		ASSERT(!(name in tags), "Tag @" + name + " has been already registered");
 		tags[name] = obj;
 	}
 	
@@ -1321,7 +1326,11 @@ var Jsrl = (function() {
 			if ((!nodes[i].id || nodes[i].id.charAt(0) != "!") && getJsrlTemplate(nodes[i]) != null) {
 				try {
 					renderNode(nodes[i]);
-				} catch (e) { }
+				} catch (e) {
+//#ifdef DEBUG
+					throw e;
+//#endif
+				}
 			}
 	}
 	 
@@ -1599,16 +1608,22 @@ var Jsrl = (function() {
 	 * Support for attributes.
 	 */
 	function parseAttributes(tag, parsers, args, index) {
+		var j = index || 0;
+		var res = [];
 		tag.attributes = [];
-		for (var i = index; i < args.length; i++) {
+		for (var i = j; i < args.length; i++) {
 			var att = parseAttribute(args[i]);
-			var parser = parsers[att.name];
-			if (parser == null && att.func)
-				parser = new EventAttParser(att.name);
-			ASSERT(parser != null, "Unable to find parser for attribute " + att.name);
-			ASSERT(!parser.isFuncAtt == !att.func, (att.func ? "'=' should be used for non-function attribute, not ':'" : "':' should be used for function attribute, not '='"));
-			tag.attributes.push(parser.parse(att.value, tag));
+			if (att) {
+				var parser = parsers[att.name];
+				if (parser == null && att.func)
+					parser = new EventAttParser(att.name);
+				ASSERT(parser != null, "Unable to find parser for attribute " + att.name);
+				ASSERT(!parser.isFuncAtt == !att.func, (att.func ? "'=' should be used for non-function attribute, not ':'" : "':' should be used for function attribute, not '='"));
+				tag.attributes.push(parser.parse(att.value, tag));
+			} else
+				args[j++] = args[i];
 		}
+		args.length = j;
 	}
 	function generateAttributes(tag, data, ctrl, env) {
 		var atts = tag.attributes;
@@ -1814,8 +1829,8 @@ var Jsrl = (function() {
 	// Define @img
 	var imgParserMap = Q.union(generalAttParsers, {"width":new CtrlAttParser("width"), "height":new CtrlAttParser("height")});
 	function ImgTag(args, scanner) {
+		parseAttributes(this, imgParserMap, args);
 		this.url = evaluateFunc(args[0]);
-		parseAttributes(this, imgParserMap, args, 1);
 	}
 	function ImgTagOnRender(id, url, width, height) {
 		this.id = id;
@@ -1894,9 +1909,9 @@ var Jsrl = (function() {
 	};
 
 	function CmdTag(args, scanner) {
-		ASSERT(args.length >= 2, "@cmd: require at least 2 arguments");
+		parseAttributes(this, focusableAttParsers, args);
+		ASSERT(args.length == 2, "@cmd: require 2 ordinary arguments");
 		this.text = evaluateFunc(args[0]);
-		parseAttributes(this, focusableAttParsers, args, 2);
 		this.attributes.push(cmdClickParser.parse(args[1], this));
 	}
 	CmdTag.prototype = {
@@ -1913,8 +1928,8 @@ var Jsrl = (function() {
 	
 	// Define @cmdx
 	function CmdxTag(args, scanner) {
-		ASSERT(args.length >= 1, "@cmdx: require at least 1 arguments");
-		parseAttributes(this, generalAttParsers, args, 1);
+		parseAttributes(this, generalAttParsers, args);
+		ASSERT(args.length == 1, "@cmdx: require 1 ordinary argument");
 		this.attributes.push(cmdClickParser.parse(args[0], this));
 		this.body = new Block();
 		var last = this.body.appendUntilDummy(scanner);
@@ -2115,12 +2130,13 @@ var Jsrl = (function() {
 	registerFormNsTag("ns", false);
 	
 	// Define the base functions of Jsrl controls
-	function CtrlBase(args, scanner, extraArg, ctrlClass, parserMap, attIndex) {
+	function CtrlBase(args, scanner, extraArg, ctrlClass, parserMap) {
 		ASSERT(args.length > 0, "expect at least one argument for a control");
 		this.setter = new Setter(args[0]);
+		parseAttributes(this, parserMap, args, 1);
 		this.initVal = (isEmptyArg(args[1]) ? null : evaluateFunc(args[1]));
 		this.ctrlInst = new ctrlClass(args, scanner, extraArg);
-		parseAttributes(this.ctrlInst, parserMap, args, attIndex);
+		this.ctrlInst.attributes = this.attributes;
 	}
 	function CtrlOnRender(ctrl, status) {
 		this.ctrl = ctrl;
@@ -2154,11 +2170,10 @@ var Jsrl = (function() {
 		}
 	};
 	
-	function registerCtrl(tagName, ctrlClass, extraArg, defaultValue, parserMap, extraArgs) {
+	function registerCtrl(tagName, ctrlClass, extraArg, defaultValue, parserMap) {
 		if (parserMap == null) parserMap = {};
-		if (extraArgs == null) extraArgs = 0;
 		var tagClass = function (args, scanner) {
-			CtrlBase.call(this, args, scanner, extraArg, ctrlClass, parserMap, extraArgs + 2);
+			CtrlBase.call(this, args, scanner, extraArg, ctrlClass, parserMap);
 		};
 		Q.extend(tagClass, CtrlBase);
 		tagClass.prototype.defaultValue = defaultValue;
@@ -2456,26 +2471,28 @@ var Jsrl = (function() {
 	};
 	registerCtrl("hidden", HiddenCtrlTag, null, null, hiddenAttribute);
 	
-	function getCtrlAttList(args, begId) {
-		var events = [], atts = [];
+	function setCtrlAttList(tag, args, begId) {
+		var events = [], atts = [], argList = [];
 		for (var i = begId; i < args.length; i++) {
 			var att = parseAttribute(args[i]);
-			var parser;
-			if (att.func) {
-				var event = (new EventAttParser(att.name)).parse(att.value);
-				events.push({"name":att.name, "e":event})
-			} else {
-				var func = evaluateFunc(att.value);
-				atts.push({"name":att.name, "func":func});
-			}
+			if (att) {
+				if (att.func) {
+					var event = (new EventAttParser(att.name)).parse(att.value);
+					events.push({"name":att.name, "e":event})
+				} else {
+					var func = evaluateFunc(att.value);
+					atts.push({"name":att.name, "func":func});
+				}
+			} else
+				argList.push(evaluateFunc(args[i]));	
 		}
-		return [ events, atts ];
+		tag.events = events;
+		tag.atts = atts;
+		tag.args = argList;
 	}
-	function appendCtrlAtts(newData, data, env, obj) {
-		var events = obj[0];
+	function appendCtrlAtts(newData, data, env, events, atts) {
 		for (var i = 0; i < events.length; i++)
 			newData[events[i].name] = events[i].e.getCtrlEventFunc(data, env);
-		var atts = obj[1];
 		for (var i = 0; i < atts.length; i++)
 			newData[atts[i].name] = atts[i].func(data);
 	}
@@ -2528,35 +2545,45 @@ var Jsrl = (function() {
 	registerTag("L", LoadTag);
 
 	// @C tag and @Cx tag
-	function COrCxTag(hasBlk) {
+	function COrCxTag(tagName, hasBlk, hasId) {
+		var sepTagName, endTagName;
+		var argOfst = (hasId ? 1 : 0);
+		if (hasBlk) {
+			sepTagName = "sep_" + tagName;
+			endTagName = "end_" + tagName;
+		}
 		var CTag = function (args, scanner) {
-			ASSERT(args.length >= 2, "@" + (hasBlk ? "Cx" : "C") + ": need at least 2 arguments");
-			this.setter = new Setter(args[0]);
-			this.tempName = evaluateFunc(args[1]);
-			this.attList = getCtrlAttList(args, 2);
+			ASSERT(args.length >= argOfst + 1, "@" + tagName + ": need at least " + argOfst + " arguments");
+			this.setter = new Setter(hasId ? args[0] : null);
+			this.tempName = evaluateFunc(args[argOfst]);
+			setCtrlAttList(this, args, argOfst + 1);
+
 			if (hasBlk) {
 				this.blocks = [];
 				var last;
 				do {
 					var body = new Block();
 					last = body.appendUntilDummy(scanner);
-					ASSERT(last.type == "sep_Cx" || last.type == "end_Cx" || last.type == "E", "@Cx: expect a @sep_Cx, @end_Cx or @E, unknown tag @" + last.type);
+					ASSERT(last.type == sepTagName || last.type == endTagName || last.type == "E", "@Cx: expect a @" + sepTagName + ", @" + endTagName + " or @E, unknown tag @" + last.type);
 					this.blocks.push(body);
-				} while (last.type != "end_Cx" && last.type != "E");
+				} while (last.type != endTagName && last.type != "E");
 			}
 		};
 		CTag.prototype = {
 			generate : function (data, env) {
 				var tempName = this.tempName(data);
-				ASSERT(typeof(tempName) == "string", "@" + (hasBlk ? "Cx" : "C") + ": the second argument should be a string");
+				ASSERT(typeof(tempName) == "string", "@" + tagName + ": the second argument should be a string");
 				var evaluator = getTemplate(tempName);
+				var arr = new Array(this.args.length);
+				for (var i = 0; i < arr.length; i++)
+					arr[i] = (this.args[i])(data);
 				//deal with control name
 				var setterInst = this.setter.getSetterInstance(data, env);
 				var oldInd = env.parCtrlIndexes;
 				env.parCtrlIndexes = setterInst;
 				//set attributes and events
 				var newData = {};
-				appendCtrlAtts(newData, data, env, this.attList);
+				appendCtrlAtts(newData, data, env, this.events, this.atts);
 				if (hasBlk) {
 					var blks = new Array(this.blocks.length);
 					for (var i = 0; i < blks.length; i++)
@@ -2569,69 +2596,23 @@ var Jsrl = (function() {
 				newData.__outerPos = Trace().top(); 
 //#endif
 				//evaluate
-				evaluator.evaluateData(newData, [], env);
+				evaluator.evaluateData(newData, arr, env);
 				env.parCtrlIndexes = oldInd;
 				if (env.cContTemp) env.cStop = env.cContTemp = false;
 			}
 		};
 		return CTag;
 	}
-	registerTag("C", COrCxTag(false));
-	registerTag("Cx", COrCxTag(true));
+	registerTag("C", COrCxTag("C", false, true));
+	registerTag("Cx", COrCxTag("Cx", true, true));
+	registerTag("I", COrCxTag("I", false, false));
+	registerTag("Ix", COrCxTag("Ix", true, false));
 	
-	// @I tag and @Ix tag
-	function IOrIxTag(hasBlk) {
-		var ITag = function (args, scanner) {
-			ASSERT(args.length >= 1, "@" + (hasBlk ? "Ix" : "I") + ": need at least 1 arguments");
-			this.tempName = evaluateFunc(args[0]);
-			this.args = new Array(args.length - 1);
-			this.evaluator = null;
-			for (var i = 1; i < args.length; i++)
-				this.args[i - 1] = evaluateFunc(args[i]);
-			if (hasBlk) {
-				this.blocks = [];
-				var last;
-				do {
-					var body = new Block();
-					last = body.appendUntilDummy(scanner);
-					ASSERT(last.type == "sep_Ix" || last.type == "end_Ix" || last.type == "E", "@Ix: expect a @sep_Ix, @end_Ix or @E, unknown tag @" + last.type);
-					this.blocks.push(body);
-				} while (last.type != "end_Ix" && last.type != "E");
-			}
-		};
-		ITag.prototype = {
-			generate : function (data, env) {
-				var tempName = this.tempName(data);
-				ASSERT(typeof(tempName) == "string", "@I: the argument should be a string");
-				var evaluator = getTemplate(tempName);
-				var arr = new Array(this.args.length);
-				for (var i = 0; i < arr.length; i++)
-					arr[i] = (this.args[i])(data);
-				var newData = {};
-				if (hasBlk) {
-					var blks = new Array(this.blocks.length);
-					for (var i = 0; i < blks.length; i++)
-						blks[i] = this.blocks[i];
-					newData.__outerBlocks = blks;
-					newData.NUMBLOCKS = blks.length;
-					newData.__outerData = data;
-				}
-//#ifdef DEBUG
-				newData.__outerPos = Trace().top(); 
-//#endif
-				evaluator.evaluateData(newData, arr, env);
-				if (env.cContTemp) env.cStop = env.cContTemp = false;
-			}
-		};
-		return ITag;
-	}
-	registerTag("I", IOrIxTag(false));
-	registerTag("Ix", IOrIxTag(true));
 
 	function BlockTag(args, scanner) {
 		ASSERT(args.length >= 1, "@block: need at least 1 arguments");
 		this.argId = evaluateFunc(args[0]);
-		this.attList = getCtrlAttList(args, 1);
+		setCtrlAttList(this, args, 1);
 	}
 	BlockTag.prototype = {
 		generate : function (data, env) {
@@ -2639,7 +2620,7 @@ var Jsrl = (function() {
 			ASSERT(data.__outerBlocks, "@block can be only used within a callee template");
 			var blk = data.__outerBlocks[argId];
 			var newData = data.__outerData;
-			appendCtrlAtts(newData, data, env, this.attList);
+			appendCtrlAtts(newData, data, env, this.events, this.atts);
 //#ifdef DEBUG
 			Trace().pushTmp(data.__outerPos.info);
 //#endif
