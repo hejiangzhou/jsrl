@@ -667,6 +667,12 @@ handler();
 else
 readyHandlers.push(handler);
 };
+Q.onDomRendered = function (f) {
+if (Q.Browser.IE)
+setTimeout(f, 0);
+else
+f();
+}
 var scrollHandlers = null;
 function scrollHandlerFunc(e) {
 for (var i = 0; i < scrollHandlers.length; i++) {
