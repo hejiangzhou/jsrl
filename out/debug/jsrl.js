@@ -227,7 +227,7 @@ try {
 return func(data);
 } catch (e) {
 Trace().setPos(arg.pos);
-ERROR("Error occurs while executing JavaScript code", e);
+ERROR("Error occurs while executing JavaScript code" + (e.message ? ": " + e.message : ""), e);
 }
 };
 }
@@ -546,7 +546,7 @@ try {
 func = JsrlEval("res = function (__data) { return (" + arg + "); };");
 } catch (e) {
 Trace().setPos(xarg.pos);
-ERROR("Error occurs while evaluating expression", e);
+ERROR("Error occurs while evaluating expression" + (e.message ? ": " + e.message : ""), e);
 }
 return funcWrapper(func, xarg);
 }
@@ -558,7 +558,7 @@ try {
 func = JsrlEval("res = function (__data) { " + arg + "; };");
 } catch (e) {
 Trace().setPos(xarg.pos);
-ERROR("Error occurs while executing statement", e);
+ERROR("Error occurs while executing statement" + (e.message ? ": " + e.message : ""), e);
 }
 return funcWrapper(func, xarg);
 }
@@ -1415,7 +1415,7 @@ return handler(event, env.doc, dataClone, ctrl, form, ctrls, args);
 Trace().push(outerPos);
 Trace().pushTmp(info.info);
 Trace().setPos(info.pos);
-ERROR("Error occurs in event handler", e);
+ERROR("Error occurs in event handler" + (e.message ? ": " + e.message : ""), e);
 }
 };
 }
@@ -1447,7 +1447,8 @@ if (ch == "#") {
 scanner.pos++;
 return "#";
 } else if (identBeginner.test(ch)) {
-return "ctrls.";
+var ident = nextIdentifier(scanner);
+return "(ctrls['" + ident + "'] || form.findIdent('" + ident + "'))";
 } else {
 return "self";
 }
@@ -1461,7 +1462,7 @@ try {
 r = JsrlEval("res = function (event, document, __data, self, form, ctrls, args) { " + s.arg + "; };");
 Trace().pop();
 } catch (e) {
-ERROR("Error occurs while evaluating an event handler", e);
+ERROR("Error occurs while evaluating an event handler" + (e.message ? ": " + e.message : ""), e);
 }
 return r;
 }
@@ -1520,7 +1521,11 @@ Q.attachEvent(node, name, handlers[i]);
 }
 function getSafeFunc(func, self) {
 return function () {
+try {
 func.apply(self);
+} catch (e) {
+postExec(function () { throw e; });
+}
 return false;
 };
 }
@@ -1732,6 +1737,13 @@ Trace().pop();
 }
 if (this.isForm) this.node.onsubmit = getSafeFunc(this.submit, this);
 if (this.handlers && this.handlers.onload) this.handlers.onload();
+},
+findIdent : function (name) {
+var f = this;
+while (f = f.parent)
+if (name in f.ctrls)
+return f.ctrls[name];
+throw new Error("Cannot find control by #" + name);
 },
 "__type" : "FormCtrl"
 };
