@@ -1153,7 +1153,8 @@ if (ch == "#") {
 scanner.pos++;
 return "#";
 } else if (identBeginner.test(ch)) {
-return "ctrls.";
+var ident = nextIdentifier(scanner);
+return "(ctrls['" + ident + "'] || form.findIdent('" + ident + "'))";
 } else {
 return "self";
 }
@@ -1220,7 +1221,11 @@ Q.attachEvent(node, name, handlers[i]);
 }
 function getSafeFunc(func, self) {
 return function () {
+try {
 func.apply(self);
+} catch (e) {
+postExec(function () { throw e; });
+}
 return false;
 };
 }
@@ -1426,6 +1431,13 @@ hooks[i].onrender(env);
 }
 if (this.isForm) this.node.onsubmit = getSafeFunc(this.submit, this);
 if (this.handlers && this.handlers.onload) this.handlers.onload();
+},
+findIdent : function (name) {
+var f = this;
+while (f = f.parent)
+if (name in f.ctrls)
+return f.ctrls[name];
+throw new Error("Cannot find control by #" + name);
 },
 "__type" : "FormCtrl"
 };
