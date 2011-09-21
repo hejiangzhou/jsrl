@@ -420,6 +420,18 @@ var Q = (function () {
 		return document.createElement(eleName);
 	};
 
+	Q.$DIV = function (className) {
+		var r = Q.$CE("div");
+		if (arguments.length > 1) {
+			var arr = new Array(arguments.length);
+			for (var i = 0; i < arguments.length; i++)
+				arr[i] = arguments[i];
+			r.className = arr.join(" ");
+		} else
+			r.className = className || "";
+		return r;
+	};
+
 	Q.$A = function (id, attName, attValue) {
 		var node = (typeof(id) == "string" ? $(id) : id);
 		for (var i = 1; i < arguments.length; i += 2)
@@ -436,6 +448,7 @@ var Q = (function () {
 			}
 		} else
 			node.className = className;
+		return node;
 	};
 
 	Q.removeClass = function (node, className) {
@@ -447,6 +460,7 @@ var Q = (function () {
 				node.className = classes.join(" ");
 			}
 		}
+		return node;
 	};
 
 	Q.applyStyle = function (node, styles) {
@@ -793,7 +807,7 @@ var Q = (function () {
 	};
 	   
 	Q.importShortcuts = function () {
-		Q.importName("$", "$N", "$P", "$S", "$SPX", "$GS", "$T", "$V", "$CE", "$A");
+		Q.importName("$", "$N", "$P", "$S", "$SPX", "$GS", "$T", "$V", "$CE", "$A", "$DIV");
 	};
 
 	return Q;
