@@ -392,12 +392,13 @@ skipBlank(scanner);
 var symbolStack = [];
 var str = [];
 var value = scanner.value;
+var last = null;
 var startPos = scanner.finalPos();
 while (scanner.pos < value.length) {
 var ch = value.charAt(scanner.pos++);
 var ti = (varTkn ? varTkn.indexOf(ch) : -1);
 if (ti >= 0) {
-str.push(arguments[3 + ti](scanner, value));
+str.push(arguments[3 + ti](scanner, value, last));
 } else {
 switch (ch) {
 case "(":
@@ -432,6 +433,7 @@ symbolStack.pop();
 str.push(ch);
 }
 }
+last = ch;
 }
 var result = Q.trim(str.join(""));
 result = new ArgWithPos(result, startPos);
@@ -1439,7 +1441,7 @@ var ctrls = (ctrl.__type == "FormCtrl" ? ctrl.ctrls : env.form.ctrls);
 ctrl.handlers[this.type] = createEventHandler(this.handler, data, env, ctrl, ctrls, args, this.info);
 }
 };
-function sharpParseFunc(scanner, value) {
+function sharpParseFunc(scanner, value, last) {
 if (scanner.end())
 return "self";
 ch = value.charAt(scanner.pos);
@@ -1447,8 +1449,12 @@ if (ch == "#") {
 scanner.pos++;
 return "#";
 } else if (identBeginner.test(ch)) {
+if (last == ".")
+return "ctrls."
+else {
 var ident = nextIdentifier(scanner);
 return "(ctrls['" + ident + "'] || form.findIdent('" + ident + "'))";
+}
 } else {
 return "self";
 }
@@ -1523,9 +1529,7 @@ function getSafeFunc(func, self) {
 return function () {
 try {
 func.apply(self);
-} catch (e) {
-postExec(function () { throw e; });
-}
+} catch (e) { }
 return false;
 };
 }

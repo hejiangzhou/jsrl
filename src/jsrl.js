@@ -477,6 +477,7 @@ var Jsrl = (function() {
 		var symbolStack = [];
 		var str = [];
 		var value = scanner.value;
+		var last = null;
 //#ifdef DEBUG
 		var startPos = scanner.finalPos(); 
 //#endif
@@ -484,7 +485,7 @@ var Jsrl = (function() {
 			var ch = value.charAt(scanner.pos++);
 			var ti = (varTkn ? varTkn.indexOf(ch) : -1);
 			if (ti >= 0) {
-				str.push(arguments[3 + ti](scanner, value));
+				str.push(arguments[3 + ti](scanner, value, last));
 			} else {
 				switch (ch) {
 				case "(":
@@ -523,6 +524,7 @@ var Jsrl = (function() {
 					str.push(ch);
 				}
 			}
+			last = ch;
 		}
 		var result = Q.trim(str.join(""));
 //#ifdef DEBUG
@@ -1725,7 +1727,7 @@ var Jsrl = (function() {
 		}
 	};
 
-	function sharpParseFunc(scanner, value) {
+	function sharpParseFunc(scanner, value, last) {
 		if (scanner.end())
 			return "self";
 		ch = value.charAt(scanner.pos);
@@ -1733,8 +1735,12 @@ var Jsrl = (function() {
 			scanner.pos++;
 			return "#";
 		} else if (identBeginner.test(ch)) {
-			var ident = nextIdentifier(scanner);
-			return "(ctrls['" + ident + "'] || form.findIdent('" + ident + "'))";
+			if (last == ".")
+				return "ctrls."
+			else {
+				var ident = nextIdentifier(scanner);
+				return "(ctrls['" + ident + "'] || form.findIdent('" + ident + "'))";
+			}
 		} else {
 			return "self";
 		}
@@ -1824,9 +1830,7 @@ var Jsrl = (function() {
 		return function () {
 			try {
 				func.apply(self);
-			} catch (e) {
-				postExec(function () { throw e; });
-			}
+			} catch (e) { }
 			return false;
 		};
 	}
