@@ -1395,9 +1395,10 @@ this.subForms = undefined;
 this.ctrls = undefined;
 },
 addRefreshListener : function (listener) { this.refreshListeners.push(listener); },
-notifyRefresh : function () {
+refresh : function () {
 for (var i = 0; i < this.refreshListeners.length; i++)
 (this.refreshListeners[i])();
+if (this.parent) this.parent.refresh();
 },
 _render : function (args) {
 if (!this.ctrls) return;
@@ -1415,11 +1416,7 @@ env.initRender();
 this.body.generate(this.data, env);
 this.node.innerHTML = env.getHtml();
 env.callRenderHook();
-var form = this;
-do {
-form.notifyRefresh();
-form = form.parent;
-} while (form);
+this.refresh();
 },
 render : function (args) {
 if (!this.ctrls) return;
