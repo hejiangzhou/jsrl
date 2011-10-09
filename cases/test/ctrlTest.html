@@ -34,7 +34,7 @@
 		@select{select0, 11, style="color:red;", onchange: alert("列表框的值已改为" + #.get())}
 			@option{null, "不选"} 
 			@foreach{pm, $primes}
-				@optionx{$pm, style="background-color:#afafaf;"} 素数<b>@{$pm}</b> @end_optionx
+				@optionx{$pm, value="pm" + $pm, style="background-color:#afafaf;"} 素数<b>@{$pm}</b> @end_optionx
 			@end_foreach
 		@end_select
 		<br/>
