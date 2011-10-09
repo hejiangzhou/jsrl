@@ -1381,6 +1381,7 @@ this.value = value;
 SimpleAttGenerator.prototype = {
 generate : function (data, ctrl, tag, env) {
 var value = this.value(data);
+if (ctrl) ctrl[this.name] = value;
 if (value != null)
 env.push(" " + this.name + "=\"" + Q.escape(value + "") + "\" ");
 }
@@ -1486,7 +1487,7 @@ parse : function (value, tag) { tag.idFunc = evaluateFunc(value); return nullGen
 }
 };
 var hiddenAttribute = { "hidden" : new CtrlAttParser("hidden") };
-var valueCtrlAttParsers = hiddenAttribute;
+var valueCtrlAttParsers = Q.union(hiddenAttribute);
 function getId(tag, data, env) {
 return (tag.idFunc ? tag.idFunc(data) : env.generateId());
 }
@@ -1503,8 +1504,9 @@ result[arguments[i]] = new ValueAttParser(arguments[i]);
 return result;
 }
 var generalAttParsers = Q.union(idAttParser, simpleAttParserMap("class", "style"));
+var pseudoValueParsers = simpleAttParserMap("value");
 function tagByIdName(tagName, id, name) { return "<" + tagName + " id=\"" + id + "\" name=\"" + name + "\" "; }
-function tagById(tagName, id) { return tagByIdName(tagName, id, id); }
+function tagById(tagName, id) { return "<" + tagName + " id=\"" + id + "\" "; }
 function subId(id, index) { return id + "_" + index; }
 function addEvent(node, type, ctrl, name) {
 var h = ctrl.handlers[name];
@@ -1857,7 +1859,7 @@ tagClass.prototype.defaultValue = defaultValue;
 registerTag(tagName, tagClass);
 }
 var focusableAttParsers = Q.union(generalAttParsers, simpleAttParserMap("tabindex", "accesskey"));
-var generalCtrlAttParsers = Q.union(focusableAttParsers, valueCtrlAttParsers);
+var generalCtrlAttParsers = Q.union(focusableAttParsers, valueCtrlAttParsers, simpleAttParserMap("name"));
 function TextCtrl(id, needTrim) {
 this.id = id;
 this.needTrim = needTrim;
@@ -1922,11 +1924,11 @@ env.push("/>");
 return ctrl;
 }
 };
-registerCtrl("checkbox", CheckboxCtrlTag, null, false, generalCtrlAttParsers);
-function RadioGroupCtrl(id, ids, values) {
+registerCtrl("checkbox", CheckboxCtrlTag, null, false, Q.union(generalCtrlAttParsers, pseudoValueParsers));
+function RadioGroupCtrl(id) {
 this.id = id;
-this.ids = ids;
-this.values = values;
+this.ids = [];
+this.values = [];
 }
 RadioGroupCtrl.prototype = {
 init : function (env) {
@@ -1961,21 +1963,19 @@ __check_end("@radio_group", last, "end_radio_group");
 }
 RadioGroupCtrlTag.prototype = {
 generate : function (data, env, id) {
-this.values = [];
-this.ids = [];
-this.id = id;
-env.currentRadioGroup = this;
-var ctrl = new RadioGroupCtrl(this.id, this.ids, this.values);
+var ctrl = new RadioGroupCtrl(id);
+env.currentRadioGroup = ctrl;
 generateAttributes(this, data, ctrl, env);
+ctrl.name = (ctrl.name || id);
 this.body.generate(data, env);
 env.currentRadioGroup = undefined;
 return ctrl;
 }
 };
-registerCtrl("radio_group", RadioGroupCtrlTag, null, null, Q.union(valueCtrlAttParsers, idAttParser));
+registerCtrl("radio_group", RadioGroupCtrlTag, null, null, Q.union(valueCtrlAttParsers, idAttParser, valueAttParserMap("name")));
 function RadioTag(args, scanner) {
 this.value = evaluateFunc(args[0]);
-parseAttributes(this, focusableAttParsers, args, 1);
+parseAttributes(this, Q.union(focusableAttParsers, pseudoValueParsers), args, 1);
 }
 RadioTag.prototype = {
 generate : function (data, env) {
@@ -1984,7 +1984,7 @@ ASSERT(group != null, "@radio: must reside in a radio group");
 var id = (this.idFunc ? this.idFunc(data) : subId(group.id, group.values.length));
 group.values.push(this.value(data));
 group.ids.push(id);
-env.push(tagByIdName("input type=\"radio\"", id, group.id));
+env.push(tagByIdName("input type=\"radio\"", id, group.name));
 generateAttributes(this, data, null, env);
 env.push("/>");
 }
@@ -2021,7 +2021,6 @@ __check_end("@select", last, "end_select");
 SelectCtrlTag.prototype = {
 generate : function (data, env, id) {
 this.values = [];
-var id = env.generateId();
 env.currentSelect = this;
 var ctrl = new SelectCtrl(id, this.values);
 env.push(tagById("select", id));
@@ -2037,7 +2036,7 @@ registerCtrl("select", SelectCtrlTag, null, null, generalCtrlAttParsers);
 function OptionTag(args, scanner) {
 this.value = evaluateFunc(args[0]);
 this.text = evaluateFunc(args[1]);
-parseAttributes(this, generalAttParsers, args, 2);
+parseAttributes(this, Q.union(generalAttParsers, pseudoValueParsers), args, 2);
 }
 OptionTag.prototype = {
 generate : function (data, env) {
@@ -2052,7 +2051,7 @@ env.push(">" + Q.escape(this.text(data)) + "</option>");
 registerTag("option", OptionTag);
 function OptionxTag(args, scanner) {
 this.value = evaluateFunc(args[0]);
-parseAttributes(this, generalAttParsers, args, 1);
+parseAttributes(this, Q.union(generalAttParsers, pseudoValueParsers), args, 1);
 this.body = new Block();
 var last = this.body.appendUntilDummy(scanner);
 __check_end("@optionx", last, "end_optionx");
