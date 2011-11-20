@@ -233,7 +233,7 @@ var Q = (function () {
 	
 	Q.bind = function (fun, self) {
 		return function() {
-			fun.apply(self, arguments);
+			return fun.apply(self, arguments);
 		}
 	};
 
@@ -383,9 +383,13 @@ var Q = (function () {
 		return node;
 	};
 
-	Q.$SPX = function (id, name, value) {
+	Q.$SPX = function (id) {
 		var node = (typeof(id) == "string" ? $(id) : id);
-		Q.$S(node, name, (value > 0 ? value : 0) + "px");
+		for (var i = 1; i < arguments.length; i += 2) {
+			var name = arguments[i];
+			var value = arguments[i + 1];
+			Q.$S(node, name, (value || 0) + "px");
+		}
 		return node;
 	};
 
@@ -427,8 +431,8 @@ var Q = (function () {
 			for (var i = 0; i < arguments.length; i++)
 				arr[i] = arguments[i];
 			r.className = arr.join(" ");
-		} else
-			r.className = className || "";
+		} else if (className)
+			r.className = className;
 		return r;
 	};
 
@@ -466,6 +470,11 @@ var Q = (function () {
 	Q.applyStyle = function (node, styles) {
 		for (var name in styles)
 			$S(node, name, styles[name]); 
+	};
+
+	Q.preloadImg = function (src) {
+		var img = new Image();
+		img.src = src;
 	};
 
 	/////////////////////////////////////
@@ -752,6 +761,19 @@ var Q = (function () {
 		scrollHandlers.push(r);
 		return { detach: function () { Q.arrRemovev(scrollHandlers, r); } };
 	};
+
+	Q.getOffset = function (node, target) {
+		var x = 0, y = 0;
+		target = target || document.body;
+		while (node && node != target) {
+			x += node.offsetLeft;
+			y += node.offsetTop;
+			node = node.parentNode;
+		}
+		return { top: y, left: x };
+	};
+
+	Q.MAX_ZINDEX = 9999;
 
 	/////////////////////////////////////
 	// Ajax utility

@@ -277,7 +277,7 @@ return function (data) { return val; };
 };
 Q.bind = function (fun, self) {
 return function() {
-fun.apply(self, arguments);
+return fun.apply(self, arguments);
 }
 };
 Q.seq = function () {
@@ -398,9 +398,13 @@ node.style[name] = value;
 }
 return node;
 };
-Q.$SPX = function (id, name, value) {
+Q.$SPX = function (id) {
 var node = (typeof(id) == "string" ? $(id) : id);
-Q.$S(node, name, (value > 0 ? value : 0) + "px");
+for (var i = 1; i < arguments.length; i += 2) {
+var name = arguments[i];
+var value = arguments[i + 1];
+Q.$S(node, name, (value || 0) + "px");
+}
 return node;
 };
 Q.$GS = function (id, name) {
@@ -437,8 +441,8 @@ var arr = new Array(arguments.length);
 for (var i = 0; i < arguments.length; i++)
 arr[i] = arguments[i];
 r.className = arr.join(" ");
-} else
-r.className = className || "";
+} else if (className)
+r.className = className;
 return r;
 };
 Q.$A = function (id, attName, attValue) {
@@ -472,6 +476,10 @@ return node;
 Q.applyStyle = function (node, styles) {
 for (var name in styles)
 $S(node, name, styles[name]);
+};
+Q.preloadImg = function (src) {
+var img = new Image();
+img.src = src;
 };
 Q.setCookie = function (name, value, expires, path, domain, secure){
 var str = name + "=" + encodeURIComponent(value);
@@ -706,6 +714,17 @@ var r = {f:handler, args:args};
 scrollHandlers.push(r);
 return { detach: function () { Q.arrRemovev(scrollHandlers, r); } };
 };
+Q.getOffset = function (node, target) {
+var x = 0, y = 0;
+target = target || document.body;
+while (node && node != target) {
+x += node.offsetLeft;
+y += node.offsetTop;
+node = node.parentNode;
+}
+return { top: y, left: x };
+};
+Q.MAX_ZINDEX = 9999;
 Q.ajax = function (url, arg2, arg3, arg4) {
 var method = "GET", body = null, callback;
 if (typeof(arg2) == "function")
