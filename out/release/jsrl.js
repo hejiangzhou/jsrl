@@ -643,7 +643,7 @@ var result = new Evaluator(list, prop, lang);
 basePath = basePathStr = null;
 return result;
 }
-var loadedUrl = {}, loadedScript = {}, loadedCss = {};
+var loadedUrl = {}, loadedJs = {}, loadedCss = {};
 var loading = 0;
 var uniqueIdCount = 0;
 function LazyTemplate(name, path, text, prop, lang) {
@@ -735,13 +735,13 @@ var node = nodes[i];
 if (node.nodeType == 1) {
 if (node.nodeName == "require") {
 tracker.add();
-loadLibrary(node.getAttribute("path"), absPath, onresolve);
+loadLibrary(node.getAttribute("path"), onresolve, absPath);
 } else if (node.nodeName == "script") {
 tracker.add();
-loadJs(node.getAttribute("path"), absPath, onresolve);
+loadResource(node.getAttribute("path"), onresolve, absPath, loadedJs, Q.loadJs);
 } else if (node.nodeName == "style") {
 tracker.add();
-loadCss(node.getAttribute("path"), absPath, onresolve);
+loadResource(node.getAttribute("path"), onresolve, absPath, loadedCss, Q.loadCss);
 } else {
 var lang = node.getAttribute("lang");
 if (!lang) lang = rootLang;
@@ -807,39 +807,33 @@ if (ref == null) ref = location.pathname;
 url = replaceVar(url, metaVars);
 return Q.toAbsPath(ref, url);
 }
-function loadLibrary(url, ref, callback) {
+function loadLibrary(url, callback, ref) {
 var absPath = getAbsPath(url, ref);
-if (loadedUrl[absPath] == true) {
-if (callback) callback();
+var t = loadedUrl[absPath];
+if (t) {
+t.onready(callback);
 return true;
 }
-loadedUrl[absPath] = true;
+loadedUrl[absPath] = t = Q.newReadyTracker(callback);
+t.makePageReadyDependent();
 loading++;
 Q.ajax(absPath, function (req) {
 ;
-loadXml(absPath, req.responseXML, callback);
+loadXml(absPath, req.responseXML, Q.bind(t.ready, t));
 loading--;
 if (loading == 0) setTimeout(runPostExec, 0);
 });
 return false;
 }
-function loadJs(url, ref, callback) {
+function loadResource(url, callback, ref, map, loadFunc) {
 var absPath = getAbsPath(url, ref);
-if (absPath in loadedScript)
-callback();
-else {
-Q.loadJs(absPath, callback);
-loadedScript[absPath] = true;
+var t = map[absPath];
+if (t) {
+t.onready(callback);
+return;
 }
-}
-function loadCss(url, ref, callback) {
-var absPath = getAbsPath(url, ref);
-if (absPath in loadedCss)
-callback();
-else {
-Q.loadCss(absPath, callback);
-loadedCss[absPath] = true;
-}
+map[absPath] = t = Q.newReadyTracker(callback);
+loadFunc(absPath, Q.bind(t.ready, t));
 }
 function loadForTag(tagName) {
 var nodes = document.getElementsByTagName(tagName);

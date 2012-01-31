@@ -651,13 +651,23 @@ return { detach: detach };
 };
 var readyHandlers = [];
 var jQueryisReady = false;
+var readyDependentCnt = 0;
 var jQueryready = function() {
-if ( !jQueryisReady ) {
+if ( !jQueryisReady && readyDependentCnt == 0) {
 jQueryisReady = true;
 for (var i = 0; i < readyHandlers.length; i++)
 (readyHandlers[i])();
 }
 };
+function addReadyDependency(tracker) {
+if (!jQueryisReady) {
+readyDependentCnt++;
+tracker.onready(function () {
+if (--readyDependentCnt == 0)
+jQueryready();
+});
+}
+}
 if ( document.addEventListener ) {
 document.addEventListener( "DOMContentLoaded", function(){
 document.removeEventListener( "DOMContentLoaded", arguments.callee, false );
@@ -785,6 +795,19 @@ this.cb = null;
 }
 };
 Q.newDependTracker = function () { return new LoadDependTracker() };
+function LoadReadyTracker(cb) { this.cbs = []; if (cb) this.cbs.push(cb); }
+LoadReadyTracker.prototype = {
+onready : function (cb) { if (cb) { if (this.cbs) this.cbs.push(cb); else cb() } },
+makePageReadyDependent : function () {
+addReadyDependency(this);
+},
+ready : function () {
+for (var i in this.cbs)
+(this.cbs[i])();
+this.cbs = undefined;
+}
+};
+Q.newReadyTracker = function (cb) { return new LoadReadyTracker(cb); };
 LazyLoad = (function (doc) {
 var env,
 head,
