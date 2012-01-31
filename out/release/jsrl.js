@@ -643,7 +643,7 @@ var result = new Evaluator(list, prop, lang);
 basePath = basePathStr = null;
 return result;
 }
-var loadedUrl = {};
+var loadedUrl = {}, loadedScript = {}, loadedCss = {};
 var loading = 0;
 var uniqueIdCount = 0;
 function LazyTemplate(name, path, text, prop, lang) {
@@ -723,16 +723,25 @@ var propParsers = {};
 function registerPropParser(name, parser) {
 propParsers[name] = parser;
 }
-function loadXml(absPath, doc) {
+function loadXml(absPath, doc, callback) {
 var root = doc.documentElement;
 ;
 var rootLang = root.getAttribute("lang");
 var nodes = root.childNodes;
+var tracker = Q.newDependTracker();
+var onresolve = Q.bind(tracker.resolve, tracker);
 for (var i = 0; i < nodes.length; i++) {
 var node = nodes[i];
 if (node.nodeType == 1) {
 if (node.nodeName == "require") {
-loadLibrary(node.getAttribute("path"), absPath);
+tracker.add();
+loadLibrary(node.getAttribute("path"), absPath, onresolve);
+} else if (node.nodeName == "script") {
+tracker.add();
+loadJs(node.getAttribute("path"), absPath, onresolve);
+} else if (node.nodeName == "style") {
+tracker.add();
+loadCss(node.getAttribute("path"), absPath, onresolve);
 } else {
 var lang = node.getAttribute("lang");
 if (!lang) lang = rootLang;
@@ -778,6 +787,7 @@ registerDictItem(lang, name, Q.evalJSON(txt));
 }
 }
 }
+if (callback) tracker.onload(callback);
 }
 function replaceVar(str, vars) {
 var varExp = /{(\w+)}/g;
@@ -792,20 +802,44 @@ lastIdx = m.index + m[0].length;
 result.push(str.substr(lastIdx));
 return result.join("");
 }
-function loadLibrary(url, ref) {
+function getAbsPath(url, ref) {
 if (ref == null) ref = location.pathname;
 url = replaceVar(url, metaVars);
-var absPath = Q.toAbsPath(ref, url);
-if (loadedUrl[absPath] == true) return true;
+return Q.toAbsPath(ref, url);
+}
+function loadLibrary(url, ref, callback) {
+var absPath = getAbsPath(url, ref);
+if (loadedUrl[absPath] == true) {
+if (callback) callback();
+return true;
+}
 loadedUrl[absPath] = true;
 loading++;
 Q.ajax(absPath, function (req) {
 ;
-loadXml(absPath, req.responseXML);
+loadXml(absPath, req.responseXML, callback);
 loading--;
 if (loading == 0) setTimeout(runPostExec, 0);
 });
 return false;
+}
+function loadJs(url, ref, callback) {
+var absPath = getAbsPath(url, ref);
+if (absPath in loadedScript)
+callback();
+else {
+Q.loadJs(absPath, callback);
+loadedScript[absPath] = true;
+}
+}
+function loadCss(url, ref, callback) {
+var absPath = getAbsPath(url, ref);
+if (absPath in loadedCss)
+callback();
+else {
+Q.loadCss(absPath, callback);
+loadedCss[absPath] = true;
+}
 }
 function loadForTag(tagName) {
 var nodes = document.getElementsByTagName(tagName);
