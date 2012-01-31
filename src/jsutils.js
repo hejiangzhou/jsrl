@@ -832,6 +832,30 @@ var Q = (function () {
 		Q.importName("$", "$N", "$P", "$S", "$SPX", "$GS", "$T", "$V", "$CE", "$A", "$DIV");
 	};
 
+	/////////////////////////////////////
+	// Loading Dependency Tracker
+	/////////////////////////////////////
+
+	function LoadDependTracker () { this.ref = 0; }
+
+	LoadDependTracker.prototype = {
+		add : function (cnt) { this.ref += (cnt || 1); },
+		resolve : function (cnt) { this.ref -= (cnt || 1); this._check(); },
+		onload : function (cb) { this.cb = cb; this._check(); },
+		_check : function () {
+			var cb = this.cb;
+			if (cb && this.ref == 0) {
+				cb();
+				this.cb = null;
+			}
+		}
+	};
+	Q.newDependTracker = function () { return new LoadDependTracker() };
+
+//#include "lazyload.js"
+	Q.loadJs = function (url, callback) { LazyLoad.js(url, callback); };
+	Q.loadCss = function (url, callback) { LazyLoad.css(url, callback); };
+
 	return Q;
 })();
 

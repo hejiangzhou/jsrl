@@ -2,6 +2,7 @@
 <jsrllib>
 
 	<require path="jsrlTestLib2.xml"/>
+	<script path="jsrlTestLib.js"/>
 	
 	<!-- namecard -->
 	<template name="namecard"><![CDATA[
