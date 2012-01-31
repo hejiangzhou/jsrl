@@ -668,10 +668,12 @@ var Q = (function () {
 
 	var readyHandlers = [];
 	var jQueryisReady = false;
+	var readyDependentCnt = 0;
+
 	// Handle when the DOM is ready
 	var jQueryready = function() {
 		// Make sure that the DOM is not already loaded
-		if ( !jQueryisReady ) {
+		if ( !jQueryisReady && readyDependentCnt == 0) {
 			// Remember that the DOM is ready
 			jQueryisReady = true;
 	
@@ -683,6 +685,16 @@ var Q = (function () {
 			// (deleted)
 		}
 	};
+
+	function addReadyDependency(tracker) {
+		if (!jQueryisReady) {
+			readyDependentCnt++;
+			tracker.onready(function () {
+				if (--readyDependentCnt == 0)
+					jQueryready();
+			});
+		}
+	}
 
 	// Mozilla, Opera and webkit nightlies currently support this event
 	if ( document.addEventListener ) {
@@ -851,6 +863,23 @@ var Q = (function () {
 		}
 	};
 	Q.newDependTracker = function () { return new LoadDependTracker() };
+	
+
+	function LoadReadyTracker(cb) { this.cbs = []; if (cb) this.cbs.push(cb); }
+
+	LoadReadyTracker.prototype = {
+		onready : function (cb) { if (cb) { if (this.cbs) this.cbs.push(cb); else cb() } },
+		makePageReadyDependent : function () {
+			addReadyDependency(this);
+		},
+		ready : function () {
+			for (var i in this.cbs)
+				(this.cbs[i])();
+			this.cbs = undefined;
+		}
+	};
+	Q.newReadyTracker = function (cb) { return new LoadReadyTracker(cb); };
+
 
 //#include "lazyload.js"
 	Q.loadJs = function (url, callback) { LazyLoad.js(url, callback); };
