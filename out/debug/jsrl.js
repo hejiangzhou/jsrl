@@ -469,7 +469,7 @@ var expr = null;
 if (ch == "\"") {
 var p = nextString(scanner);
 if (strReg.test(p))
-return "\"" + Q.stringize(Q.toAbsPath(basePath, p.substr(1, p.length - 2))) + "\"";
+return "\"" + Q.stringize(Q.getAbsPath(p.substr(1, p.length - 2))) + "\"";
 else
 expr = p;
 } else if (ch == "(") {
@@ -869,12 +869,11 @@ clear(elem);
 render(elem, data, callback);
 }
 function attachNode(node, tmp, data, callback) {
-var trueName = parseFarTmpName(tmp);
-postExec(function () {
+parseFarTmpName(tmp, function (name) {
 clear(node);
 if (typeof(node) == "string") node = document.getElementById(node);
 if (node.id == "" || node.id == undefined) node.id = uniqueId();
-node.jsrlTemplate = getTemplate(trueName);
+node.jsrlTemplate = getTemplate(name);
 renderData(node, node.jsrlTemplate, data, callback);
 });
 }
@@ -888,6 +887,23 @@ var basePath, basePathStr;
 function registerTag(name, obj) {
 ASSERT(!(name in tags), "Tag @" + name + " has been already registered");
 tags[name] = obj;
+}
+function getAbsPath(path, basePath) {
+return (!path || path.length == 0) ? basePath : Q.toAbsPath(basePath, path);
+}
+function getAbsTempNameTransformer(ref) {
+var r = (ref || basePath);
+return function (name) {
+var pos = name.indexOf(':');
+if (pos > 0)
+return getAbsPath(name.substr(0, pos), r) + ":" + name.substr(pos + 1);
+else
+return r + ":" + name;
+};
+}
+function getAbsTempName(ref, name) {
+var f = getAbsTempNameTransformer(ref);
+return f(name);
 }
 function loadTemplate(template, prop, lang, path) {
 Trace().setText(template);
@@ -973,19 +989,20 @@ Trace().pop();
 }
 return result;
 }
-function parseFarTmpName(farName) {
+function parseFarTmpName(farName, callback) {
 var pos = farName.indexOf(':');
+var name;
+var cb = function () { callback(name); };
 if (pos > 0) {
-loadLibrary(farName.substr(0, pos));
-return farName.substr(pos + 1);
+name = farName.substr(pos + 1);
+loadLibrary(farName.substr(0, pos), cb);
 } else
-return farName;
+callback(farName);
 }
 function findTemplate(name, callback) {
-var trueName = parseFarTmpName(name);
-postExec(function () {
-var tmp = getTemplate(trueName);
-if (callback) callback(tmp, trueName);
+parseFarTmpName(name, function (name) {
+var tmp = getTemplate(name);
+if (callback) callback(tmp, name);
 });
 }
 var propParsers = {};
@@ -2501,6 +2518,8 @@ return {
 "valueAttParserMap" : valueAttParserMap,
 "registerTemplate" : registerTemplate,
 "parseFarTmpName" : parseFarTmpName,
+"getAbsTempNameTransformer" : getAbsTempNameTransformer,
+"getAbsTempName" : getAbsTempName,
 "registerPropParser" : registerPropParser,
 "getId" : getId,
 "tagById" : tagById,
