@@ -556,6 +556,26 @@ var Jsrl = (function() {
 		}
 	}
 
+	function replaceVar(str, vars) {
+		var varExp = /{(\w+)}/g;
+		var result = [], lastIdx = 0;
+		var m;
+		while (m = varExp.exec(str)) {
+			ASSERT(vars[m[1]], "Undefined variable \"" + m[1] + "\" in \"" + str + "\"");
+			result.push(str.substring(lastIdx, m.index));
+			result.push(vars[m[1]]);
+			lastIdx = m.index + m[0].length;
+		}
+		result.push(str.substr(lastIdx));
+		return result.join("");
+	}
+
+	function getAbsPath(url, ref) {
+		if (ref == null) ref = location.pathname;
+		url = replaceVar(url, metaVars);
+		return Q.toAbsPath(ref, url);
+	}
+	
 	function atParseFunc(scanner, value) {
 		skipBlank(scanner);
 		ASSERT(!scanner.end(), "Expect a string or expression");
@@ -564,7 +584,7 @@ var Jsrl = (function() {
 		if (ch == "\"") {
 			var p = nextString(scanner);
 			if (strReg.test(p))
-				return "\"" + Q.stringize(Q.getAbsPath(p.substr(1, p.length - 2))) + "\"";
+				return "\"" + Q.stringize(getAbsPath(p.substr(1, p.length - 2), basePath)) + "\"";
 			else
 				expr = p;
 		} else if (ch == "(") {
@@ -575,7 +595,7 @@ var Jsrl = (function() {
 //#endif
 			expr = "(" + e + ")";
 		}
-		return (expr ? "Q.toAbsPath(" + basePathStr + "," + expr + ")" : "@");
+		return (expr ? "Jsrl.getAbsPath(" + expr + "," + basePathStr + ")" : "@");
 	}
 	
 	function nextExprList(scanner) {
@@ -1092,10 +1112,6 @@ var Jsrl = (function() {
 		tags[name] = obj;
 	}
 
-	function getAbsPath(path, basePath) {
-		return (!path || path.length == 0) ? basePath : Q.toAbsPath(basePath, path);
-	}
-
 	function getAbsTempNameTransformer(ref) {
 		var r = (ref || basePath);
 		return function (name)  {
@@ -1327,26 +1343,6 @@ var Jsrl = (function() {
 		if (callback) tracker.onload(callback);
 	}
 
-	function replaceVar(str, vars) {
-		var varExp = /{(\w+)}/g;
-		var result = [], lastIdx = 0;
-		var m;
-		while (m = varExp.exec(str)) {
-			ASSERT(vars[m[1]], "Undefined variable \"" + m[1] + "\" in \"" + str + "\"");
-			result.push(str.substring(lastIdx, m.index));
-			result.push(vars[m[1]]);
-			lastIdx = m.index + m[0].length;
-		}
-		result.push(str.substr(lastIdx));
-		return result.join("");
-	}
-
-	function getAbsPath(url, ref) {
-		if (ref == null) ref = location.pathname;
-		url = replaceVar(url, metaVars);
-		return Q.toAbsPath(ref, url);
-	}
-	
 	function loadLibrary(url, callback, ref) {
 		var absPath = getAbsPath(url, ref);
 		var t = loadedUrl[absPath];
@@ -2924,6 +2920,7 @@ var Jsrl = (function() {
 		"renderNode" : renderNode,
 		"attachNode" : attachNode,
 		"clear" : clear,
+		"getAbsPath" : getAbsPath,
 		"loadLibrary" : loadLibrary,
 		"loadAll" : loadAll,
 		"loadTemplate" : loadTemplate,
