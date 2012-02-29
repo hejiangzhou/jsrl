@@ -570,13 +570,18 @@ var Q = (function () {
 		};
 	}
 
+	function attachEvent (target, type, handler) {
+		if (target.addEventListener)
+			target.addEventListener(type, handler, false);
+		else if (target.attachEvent)
+			target.attachEvent("on" + type, handler);
+	}
+	
+
 	Q.attachEvent = function (target, type, handler, args) {
 		var h = createEventHandler(type, handler, args);
 		ASSERT(target.addEventListener || target.attachEvent, "Neither target.addEventListener nor target.attachEvent is defined");
-		if (target.addEventListener)
-			target.addEventListener(type, h, false);
-		else if (target.attachEvent)
-			target.attachEvent("on" + type, h);
+		attachEvent(target, type, h);
 		return h;
 	};
 		
@@ -749,7 +754,24 @@ var Q = (function () {
 			setTimeout(f, 0);
 		else 
 			f();
-	}
+	};
+
+	Q.onhashchange = function (handler) {
+		if ("onhashchange" in window && window.addEventListener)
+			window.addEventListener("hashchange", handler, false);
+		else {
+			var lastHash = document.location.hash;
+			function checkHashChange() {
+				var hash = document.location.hash;
+				if (hash != lastHash) {
+					lastHash = hash;
+					handler();
+				}
+				Q.addNextEvent(checkHashChange);
+			}
+			Q.addNextEvent(checkHashChange);
+		}
+	};
 
 	var scrollHandlers = null;
 
@@ -873,17 +895,117 @@ var Q = (function () {
 			addReadyDependency(this);
 		},
 		ready : function () {
-			for (var i in this.cbs)
-				(this.cbs[i])();
+			var cbs = this.cbs;
 			this.cbs = undefined;
+			for (var i in cbs)
+				(cbs[i])();
 		}
 	};
 	Q.newReadyTracker = function (cb) { return new LoadReadyTracker(cb); };
 
 
+	var intervalEvents = [];
+	var intervalEventId = null;
+	var thisTime = (new Date()).getTime();
+
+	function setupIntervalFunc() {
+		if (intervalEventId == null)
+			intervalEventId = window.setInterval(intervalFunc, (Q.SCHEDULER_INTERVAL || 40));
+	}
+
+	function intervalFunc() {
+		var events = intervalEvents;
+		lastTime = thisTime;
+		thisTime = (new Date()).getTime();
+		intervalEvents = [];
+		for (var i = 0; i < events.length; i++)
+			events[i]();
+		if (intervalEvents.length == 0) {
+			window.clearInterval(intervalEventId);
+			intervalEventId = null;
+		}
+	}
+	
+	Q.addNextEvent = function (e) {
+		intervalEvents.push(e);
+		setupIntervalFunc();
+	}
+	
+	Q.AnimQueue = function () {
+		this._queue = null;
+		this._current = -1;
+	}
+	
+	Q.AnimQueue.prototype = {
+		enque :	function (f) {
+			if (f) {
+				var q = this._queue;
+				if (!q) {
+					this._queue = q = [f];
+					this._exec();
+				} else
+					q.push(f);
+				var i = q.length - 1;
+				return { "cancel" : function () { q[i] = null; } };
+			} else {
+				return { "cancel" : function () {} };
+			}
+		},
+		top : function (f) {
+			if (this._queue && this._queue.length > this._current + 1)
+				return this._queue[this._queue.length - 1];
+			else
+				return undefined;
+		},
+		pop : function () {
+			this._queue.length--;
+		},
+		cancelAll : function () {
+			this._queue.length = 0;
+		},
+		cancelWaiting : function () {
+			this._queue.length = _current + 1;
+		},
+		empty : function () { return !this._queue; },
+		onEmpty : function (f) {
+			if (this._queue) {
+				var h = (this._emptyHandlers || (this._emptyHandlers = []));
+				h.push(f);
+			} else f();
+		},
+		_exec : function () {
+			var self = this;
+			var q = this._queue;
+			var nextTime = thisTime + Q.SCHEDULER_INTERVAL / 2; 
+			var i = 0;
+			self._current = 0;
+			var e = function () {
+				while (!q[i] && ++i < q.length);
+				while (q[i] && thisTime >= nextTime) {
+					nextTime += Q.SCHEDULER_INTERVAL;
+					q[i] = q[i](thisTime >= nextTime);
+					while (!q[i] && ++i < q.length);
+				}
+				if (q[i])
+					Q.addNextEvent(e);
+				else {
+					self._queue = null;
+					if (self._emptyHandlers)
+						for (var j = 0; j < self._emptyHandlers.length; j++)
+							self._emptyHandlers[j]();
+					self._emptyHandlers = null;
+					i = -1;
+				}
+				self._current = i;
+			};
+			if (q[i]) Q.addNextEvent(e);
+		}
+	}
+	
 //#include "lazyload.js"
 	Q.loadJs = function (url, callback) { LazyLoad.js(url, callback); };
 	Q.loadCss = function (url, callback) { LazyLoad.css(url, callback); };
+	
 
 	return Q;
 })();

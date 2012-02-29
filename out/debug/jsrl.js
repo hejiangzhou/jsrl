@@ -857,25 +857,29 @@ Trace().pop();
 }
 function render(node, data, callback) {
 var elem = (typeof(node) == "string" ? document.getElementById(node): node);
-if (!elem.jsrlTemplate) elem.jsrlTemplate = getTemplate(":" + node);
+if (!elem.jsrlTemplate) elem.jsrlTemplate = getTemplate(":" + elem.id);
 renderData(elem, elem.jsrlTemplate, data, callback);
 }
 function clear(node) {
 node.form = undefined;
 }
-function rerender(name, data, callback) {
+function rerender(node, data, callback) {
 var elem = (typeof(node) == "string" ? document.getElementById(node): node);
 clear(elem);
 render(elem, data, callback);
 }
 function attachNode(node, tmp, data, callback) {
-parseFarTmpName(tmp, function (name) {
+function attach (t) {
 clear(node);
 if (typeof(node) == "string") node = document.getElementById(node);
 if (node.id == "" || node.id == undefined) node.id = uniqueId();
-node.jsrlTemplate = getTemplate(name);
-renderData(node, node.jsrlTemplate, data, callback);
-});
+node.jsrlTemplate = t;
+renderData(node, t, data, callback);
+}
+if (typeof tmp == "string")
+parseFarTmpName(tmp, function (name) { attach(getTemplate(name)); });
+else
+attach(tmp);
 }
 function renderNode(node, data, callback) {
 if (node.id == "" || node.id == undefined) node.id = uniqueId();
@@ -1788,9 +1792,11 @@ if (this.handlers && this.handlers.onload) this.handlers.onload();
 },
 findIdent : function (name) {
 var f = this;
-while (f = f.parent)
+while (f) {
 if (name in f.ctrls)
 return f.ctrls[name];
+f = f.parent;
+}
 throw new Error("Cannot find control by #" + name);
 },
 "__type" : "FormCtrl"
