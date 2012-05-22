@@ -93,7 +93,8 @@ function LOG(msg, level) {
 	}
 	__msg = [];
 }
-
+//#else
+ABORT = ASSERT = WARNING = ERROR = WARNING_IF = function() {};
 //#endif
 //#include "json2.js"
 var Q = (function () {
