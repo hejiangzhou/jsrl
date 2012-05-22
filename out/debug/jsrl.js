@@ -879,7 +879,10 @@ if (!elem.jsrlTemplate) elem.jsrlTemplate = getTemplate(":" + elem.id);
 renderData(elem, elem.jsrlTemplate, data, callback);
 }
 function clear(node) {
+if (node.form) {
+node.form.dispose();
 node.form = undefined;
+}
 }
 function rerender(node, data, callback) {
 var elem = (typeof(node) == "string" ? document.getElementById(node): node);
@@ -1739,8 +1742,11 @@ result &= this.subForms[i].onclose();
 return result && (!this.handlers || !this.handlers.close || this.handlers.close());
 },
 dispose : function () {
+if (this.subForms) {
 for (var i = 0; i < this.subForms.length; i++)
 this.subForms[i].dispose();
+}
+if (this.handlers && this.handlers.dispose) this.handlers.dispose();
 this.subForms = undefined;
 this.ctrls = undefined;
 },
@@ -2128,16 +2134,24 @@ this.node = env.doc.getElementById(this.id);
 addCommonEvents(this);
 }
 };
-function ButtonCtrlTag(args, scanner, type) {
+function ButtonCtrlTag(args, scanner, type, withId) {
+var p = 0;
+this.withId = withId;
+if (withId)
+this.setter = new Setter(args[p++]);
 this.type = type;
-this.text = evaluateFunc(args[0]);
-parseAttributes(this, buttonParserMap, args, 1);
+this.text = evaluateFunc(args[p++]);
+parseAttributes(this, buttonParserMap, args, p++);
 }
 ButtonCtrlTag.prototype = {
 generate : function (data, env) {
 var id = getId(this, data, env);
 var text = this.text(data);
 var ctrl = new ButtonCtrl(id, env);
+if (this.withId) {
+var sinst = this.setter.getSetterInstance(data, env);
+sinst.set(env.form.ctrls, ctrl);
+}
 var tagName = this.type;
 var form = env.form;
 if (tagName == "submit" && !form.isForm) tagName = "button";
@@ -2150,15 +2164,17 @@ env.addRenderHook(ctrl);
 env.push("/>");
 }
 };
-function registerButtonCtrl(name, type) {
+function registerButtonCtrl(name, type, withId) {
 var tagClass = function (args, scanner) {
-ButtonCtrlTag.call(this, args, scanner, type);
+ButtonCtrlTag.call(this, args, scanner, type, withId);
 };
 Q.extend(tagClass, ButtonCtrlTag);
 registerTag(name, tagClass);
 }
 registerButtonCtrl("submit", "submit");
 registerButtonCtrl("button", "button");
+registerButtonCtrl("isubmit", "submit", true);
+registerButtonCtrl("ibutton", "button", true);
 function HiddenCtrl() {}
 HiddenCtrl.prototype = {
 init : function () {},

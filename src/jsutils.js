@@ -219,7 +219,7 @@ var Q = (function () {
 			return false;
 	};
 
-	Q.isArray = function (obj) { return typeof(obj) == "object" && typeof(obj.length) == "number" && (0 in obj) && ((obj.length - 1) in obj); }  
+	Q.isArray = function (obj) { return typeof(obj) == "object" && typeof(obj.length) == "number" && (obj.length == 0 || (0 in obj) && ((obj.length - 1) in obj)); }  
 
 	/////////////////////////////////////
 	// Function utility
@@ -897,7 +897,7 @@ var Q = (function () {
 		ready : function () {
 			var cbs = this.cbs;
 			this.cbs = undefined;
-			for (var i in cbs)
+			for (var i = 0; i < cbs.length; i++)
 				(cbs[i])();
 		}
 	};
