@@ -1,3 +1,4 @@
+ABORT = ASSERT = WARNING = ERROR = WARNING_IF = function() {};
 var JSON;
 if (!JSON) {
 JSON = {};

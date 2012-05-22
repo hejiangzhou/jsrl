@@ -2922,6 +2922,9 @@ var Jsrl = (function() {
 		"Trace": Trace,
 		"ASSERT": ASSERT,
 		"ERROR": ERROR,
+//#else
+		"ASSERT": Q.nullFunc,
+		"ERROR": Q.nullFunc,
 //#endif
 		"evaluateFunc": evaluateFunc,
 		"executeFunc": executeFunc,

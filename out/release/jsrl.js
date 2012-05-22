@@ -2191,6 +2191,8 @@ env.push(Q.escape(getDictText(key, rargs)));
 };
 registerTag("D", DTag);
 return {
+"ASSERT": Q.nullFunc,
+"ERROR": Q.nullFunc,
 "evaluateFunc": evaluateFunc,
 "executeFunc": executeFunc,
 "Setter": Setter,
