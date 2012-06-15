@@ -32,6 +32,12 @@ function JsrlEval(str) {
 
 //The kernal of JSRL
 var Jsrl = (function() {
+        var parentJsrl = null;
+        if (parent && parent != window) {
+          try {
+            parentJsrl = parent.Jsrl;
+          } catch (e) { }
+        }
 //#ifdef DEBUG
 	/*
 	 * Error handling.
@@ -119,8 +125,8 @@ var Jsrl = (function() {
 		}
 	};
 	function Trace() {
-		if (parent != window && parent.Jsrl)
-			return parent.Jsrl.Trace();
+		if (parentJsrl)
+			return parentJsrl.Trace();
 		else
 			return _Trace;
 	}
@@ -1171,7 +1177,7 @@ var Jsrl = (function() {
 	LazyTemplate.prototype.__type = "LazyTemplate";
 	
 	function isLoading() {
-		return loading > 0 || (parent != window && parent.Jsrl && parent.Jsrl.isLoading());	
+		return loading > 0 || (parentJsrl && parentJsrl.isLoading());	
 	}
 	
 	function uniqueId() {
@@ -1223,8 +1229,8 @@ var Jsrl = (function() {
 				result = loadTemplateInPage(name);
 				ASSERT(result != undefined, "Cannot find template with name " + name);
 			} else {
-				if (parent != window && parent.Jsrl)
-					result = parent.Jsrl.getTemplate(name, true);
+				if (parentJsrl)
+					result = parentJsrl.getTemplate(name, true);
 				ASSERT(result, "Cannot find template named " + name);
 			}
 		} else if (result.__type == "LazyTemplate") {
