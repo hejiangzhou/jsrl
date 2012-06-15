@@ -4,6 +4,12 @@ eval(str);
 return res;
 };
 var Jsrl = (function() {
+var parentJsrl = null;
+if (parent && parent != window) {
+try {
+parentJsrl = parent.Jsrl;
+} catch (e) { }
+}
 var whitespace = /\s/;
 var identBeginner = /[A-Za-z_]/;
 var identChar = /\w/;
@@ -693,7 +699,7 @@ this.lang = lang;
 }
 LazyTemplate.prototype.__type = "LazyTemplate";
 function isLoading() {
-return loading > 0 || (parent != window && parent.Jsrl && parent.Jsrl.isLoading());
+return loading > 0 || (parentJsrl && parentJsrl.isLoading());
 }
 function uniqueId() {
 return "__unique_" + (uniqueIdCount++);
@@ -733,8 +739,8 @@ result = loadTemplateInPage(name.substr(1));
 result = loadTemplateInPage(name);
 ;
 } else {
-if (parent != window && parent.Jsrl)
-result = parent.Jsrl.getTemplate(name, true);
+if (parentJsrl)
+result = parentJsrl.getTemplate(name, true);
 ;
 }
 } else if (result.__type == "LazyTemplate") {
