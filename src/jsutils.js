@@ -238,6 +238,17 @@ var Q = (function () {
 		}
 	};
 
+    Q.constructor = function (func) {
+        var Temp = function () {};
+        Temp.prototype = func.prototype;
+
+        return function () {
+            var inst = new Temp();
+            var ret = func.apply(inst, arguments);
+            return ret === undefined ? inst : ret;
+        };
+    };
+
 	Q.seq = function () {
 		var args = arguments;
 		return function() {
@@ -673,15 +684,17 @@ var Q = (function () {
 	};
 
 	var readyHandlers = [];
-	var jQueryisReady = false;
+	var onreadyCalled = false;
 	var readyDependentCnt = 0;
+    var isReady = false;
 
 	// Handle when the DOM is ready
 	var jQueryready = function() {
+        isReady = true;
 		// Make sure that the DOM is not already loaded
-		if ( !jQueryisReady && readyDependentCnt == 0) {
+		if ( !onreadyCalled && readyDependentCnt == 0) {
 			// Remember that the DOM is ready
-			jQueryisReady = true;
+			onreadyCalled = true;
 	
 			// If there are functions bound, to execute
 			for (var i = 0; i < readyHandlers.length; i++)
@@ -693,10 +706,10 @@ var Q = (function () {
 	};
 
 	function addReadyDependency(tracker) {
-		if (!jQueryisReady) {
+		if (!onreadyCalled) {
 			readyDependentCnt++;
 			tracker.onready(function () {
-				if (--readyDependentCnt == 0)
+				if (--readyDependentCnt == 0 && isReady)
 					jQueryready();
 			});
 		}
@@ -724,7 +737,7 @@ var Q = (function () {
 		// If IE and not an iframe
 		// continually check to see if the document is ready
 		if ( document.documentElement.doScroll && typeof window.frameElement === "undefined" ) (function(){
-			if ( jQueryisReady ) return;
+			if ( onreadyCalled ) return;
 
 			try {
 				// If IE is used, use the trick by Diego Perini
@@ -744,7 +757,7 @@ var Q = (function () {
 	Q.attachEvent(window, "load", jQueryready);
 
 	Q.onready = function (handler) {
-		if (jQueryisReady)
+		if (onreadyCalled)
 			handler();
 		else
 			readyHandlers.push(handler);
@@ -814,19 +827,50 @@ var Q = (function () {
 	// Ajax utility
 	/////////////////////////////////////
 
-	Q.ajax = function (url, arg2, arg3, arg4) {
+    Q.restUrl = function (fmt) {
+        var res = [];
+        var lastPos = 0;
+        var pos;
+        var argPos = 1;
+        while ((pos = fmt.indexOf('#', lastPos)) >= 0) {
+            res.push(fmt.substring(lastPos, pos));
+            ASSERT(arguments[argPos] !== undefined, "Not enough arguments");
+            res.push(encodeURIComponent(arguments[argPos++]));
+            lastPos = pos + 1;
+        }
+        res.push(fmt.substr(lastPos));
+        return res.join("");
+    }
+
+    var DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded; charset=utf-8";
+	Q.ajax = function (url) {
 		var method = "GET", body = null, callback;
-		if (typeof(arg2) == "function")
-			callback = arg2;
-		else if (typeof(arg3) == "function") {
-			method = arg2;
-			callback = arg3;
-		} else {
-			ASSERT(typeof(arg4) == "function", "Callback is not provided for Q.ajax()");
-			method = arg2;
-			body = arg3;
-			callback = arg4;
-		}
+        var nargs = arguments.length;
+        var pargs = 1;
+        var headers = null;
+
+        callback = arguments[--nargs];
+        ASSERT(typeof(callback) == "function", "Callback is not provided for Q.ajax().");
+
+        ASSERT(pargs >= nargs || typeof(arguments[pargs]) == "string" || typeof(arguments[pargs]) == "object", "Expect a string or object argument after url in Q.ajax().");
+
+        if (pargs < nargs && typeof(arguments[pargs]) == "string") {
+            method = arguments[pargs++];
+
+            if (method == "POST") {
+                ASSERT(pargs < nargs, "You need to provide a body for POST Ajax request.");
+                body = arguments[pargs++];
+                ASSERT(typeof(body) == "string", "Body for POST Ajax must be string.");
+            }
+        }
+
+        if (pargs < nargs) {
+            ASSERT(typeof(arguments[pargs]) == "object", "Expect an object as additional request headers.");
+            headers = arguments[pargs++];
+        }
+
+        ASSERT(pargs == nargs, "Redundant arguments for Ajax request.");
+
 		var req;
 		if (window.XMLHttpRequest)
 			req = new XMLHttpRequest();
@@ -845,9 +889,15 @@ var Q = (function () {
 			}
 		};
 		req.open(method, url, true);
-		if (method == "POST")
-			req.setRequestHeader("Content-Type", 
-								 "application/x-www-form-urlencoded; charset=utf-8");
+
+        if (headers) {
+            for (var key in headers)
+                req.setRequestHeader(key, headers[key]);
+        }
+
+		if (method == "POST" && !("Content-Type" in headers))
+			req.setRequestHeader("Content-Type", DEFAULT_CONTENT_TYPE);
+
 		req.send(body);
 	}
 
