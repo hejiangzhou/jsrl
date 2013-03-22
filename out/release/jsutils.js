@@ -281,6 +281,15 @@ return function() {
 return fun.apply(self, arguments);
 }
 };
+Q.constructor = function (func) {
+var Temp = function () {};
+Temp.prototype = func.prototype;
+return function () {
+var inst = new Temp();
+var ret = func.apply(inst, arguments);
+return ret === undefined ? inst : ret;
+};
+};
 Q.seq = function () {
 var args = arguments;
 return function() {
@@ -654,20 +663,22 @@ Q.detachEvent(document, "mouseout", hout);
 return { detach: detach };
 };
 var readyHandlers = [];
-var jQueryisReady = false;
+var onreadyCalled = false;
 var readyDependentCnt = 0;
+var isReady = false;
 var jQueryready = function() {
-if ( !jQueryisReady && readyDependentCnt == 0) {
-jQueryisReady = true;
+isReady = true;
+if ( !onreadyCalled && readyDependentCnt == 0) {
+onreadyCalled = true;
 for (var i = 0; i < readyHandlers.length; i++)
 (readyHandlers[i])();
 }
 };
 function addReadyDependency(tracker) {
-if (!jQueryisReady) {
+if (!onreadyCalled) {
 readyDependentCnt++;
 tracker.onready(function () {
-if (--readyDependentCnt == 0)
+if (--readyDependentCnt == 0 && isReady)
 jQueryready();
 });
 }
@@ -685,7 +696,7 @@ jQueryready();
 }
 });
 if ( document.documentElement.doScroll && typeof window.frameElement === "undefined" ) (function(){
-if ( jQueryisReady ) return;
+if ( onreadyCalled ) return;
 try {
 document.documentElement.doScroll("left");
 } catch( error ) {
@@ -697,7 +708,7 @@ jQueryready();
 }
 Q.attachEvent(window, "load", jQueryready);
 Q.onready = function (handler) {
-if (jQueryisReady)
+if (onreadyCalled)
 handler();
 else
 readyHandlers.push(handler);
@@ -755,19 +766,42 @@ node = node.parentNode;
 return { top: y, left: x };
 };
 Q.MAX_ZINDEX = 9999;
-Q.ajax = function (url, arg2, arg3, arg4) {
-var method = "GET", body = null, callback;
-if (typeof(arg2) == "function")
-callback = arg2;
-else if (typeof(arg3) == "function") {
-method = arg2;
-callback = arg3;
-} else {
+Q.restUrl = function (fmt) {
+var res = [];
+var lastPos = 0;
+var pos;
+var argPos = 1;
+while ((pos = fmt.indexOf('#', lastPos)) >= 0) {
+res.push(fmt.substring(lastPos, pos));
 ;
-method = arg2;
-body = arg3;
-callback = arg4;
+res.push(encodeURIComponent(arguments[argPos++]));
+lastPos = pos + 1;
 }
+res.push(fmt.substr(lastPos));
+return res.join("");
+}
+var DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded; charset=utf-8";
+Q.ajax = function (url) {
+var method = "GET", body = null, callback;
+var nargs = arguments.length;
+var pargs = 1;
+var headers = null;
+callback = arguments[--nargs];
+;
+;
+if (pargs < nargs && typeof(arguments[pargs]) == "string") {
+method = arguments[pargs++];
+if (method == "POST") {
+;
+body = arguments[pargs++];
+;
+}
+}
+if (pargs < nargs) {
+;
+headers = arguments[pargs++];
+}
+;
 var req;
 if (window.XMLHttpRequest)
 req = new XMLHttpRequest();
@@ -786,9 +820,12 @@ callback(req);
 }
 };
 req.open(method, url, true);
-if (method == "POST")
-req.setRequestHeader("Content-Type",
-"application/x-www-form-urlencoded; charset=utf-8");
+if (headers) {
+for (var key in headers)
+req.setRequestHeader(key, headers[key]);
+}
+if (method == "POST" && !("Content-Type" in headers))
+req.setRequestHeader("Content-Type", DEFAULT_CONTENT_TYPE);
 req.send(body);
 }
 Q.importName = function () {

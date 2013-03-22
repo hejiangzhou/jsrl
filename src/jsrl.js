@@ -2293,7 +2293,7 @@ var Jsrl = (function() {
 			return ctrl;
 		}
 	};
-	var textParserMap = Q.union(generalCtrlAttParsers, simpleAttParserMap("length", "size"));
+	var textParserMap = Q.union(generalCtrlAttParsers, simpleAttParserMap("maxlength", "size"));
 	registerCtrl("text", TextCtrlTag, "text", "", textParserMap);
 	registerCtrl("password", TextCtrlTag, "password", "", textParserMap);
 
