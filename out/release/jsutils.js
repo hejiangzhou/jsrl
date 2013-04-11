@@ -903,7 +903,7 @@ this._exec();
 } else
 q.push(f);
 var i = q.length - 1;
-return { "cancel" : function () { q[i] = null; } };
+return { "cancel" : function () { if (q[i] == f) q[i] = null; } };
 } else {
 return { "cancel" : function () {} };
 }
@@ -933,7 +933,7 @@ h.push(f);
 _exec : function () {
 var self = this;
 var q = this._queue;
-var nextTime = thisTime + Q.SCHEDULER_INTERVAL / 2;
+var nextTime = (new Date()).getTime() + Q.SCHEDULER_INTERVAL / 2;
 var i = 0;
 self._current = 0;
 var e = function () {
