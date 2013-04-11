@@ -824,7 +824,7 @@ if (headers) {
 for (var key in headers)
 req.setRequestHeader(key, headers[key]);
 }
-if (method == "POST" && !("Content-Type" in headers))
+if (method == "POST" && !(headers && ("Content-Type" in headers)))
 req.setRequestHeader("Content-Type", DEFAULT_CONTENT_TYPE);
 req.send(body);
 }
