@@ -1027,7 +1027,7 @@ var Q = (function () {
 		_exec : function () {
 			var self = this;
 			var q = this._queue;
-			var nextTime = (new Date()).getTime() + Q.SCHEDULER_INTERVAL * 3 / 2; 
+			var nextTime = (new Date()).getTime() + Q.SCHEDULER_INTERVAL; 
 			var i = 0;
 			self._current = 0;
 			var e = function () {
